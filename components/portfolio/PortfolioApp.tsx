@@ -187,6 +187,7 @@ export function PortfolioApp() {
     };
 
     document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("pointermove", handleMouseMove as EventListener);
     document.addEventListener("mouseover", handleMouseOver);
     document.addEventListener("mouseout", handleMouseOut);
     frameId = window.requestAnimationFrame(animateCursor);
@@ -194,6 +195,7 @@ export function PortfolioApp() {
     return () => {
       window.cancelAnimationFrame(frameId);
       document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("pointermove", handleMouseMove as EventListener);
       document.removeEventListener("mouseover", handleMouseOver);
       document.removeEventListener("mouseout", handleMouseOut);
     };
