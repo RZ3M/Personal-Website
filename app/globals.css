@@ -106,7 +106,7 @@ a:hover { color: var(--red); }
   top: 50%;
   transform: translateY(-50%);
   z-index: 1000;
-  width: 190px;
+  width: 140px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -133,10 +133,10 @@ a:hover { color: var(--red); }
 /* Shift knob — larger, sphere-like */
 .h-gate-knob {
   position: absolute;
-  width: 32px;
-  height: 32px;
-  margin-left: -16px;
-  margin-top: -16px;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  margin-top: -14px;
   border-radius: 50%;
   background: radial-gradient(
     circle at 35% 30%,
@@ -1141,9 +1141,9 @@ a:hover { color: var(--red); }
   .skills-dashboard { grid-template-columns: 1fr; }
   .education-grid { grid-template-columns: 1fr; }
   .projects-grid { grid-template-columns: 1fr; }
-  .h-pattern-shifter { right: 8px; width: 150px; }
+  .h-pattern-shifter { right: 8px; width: 115px; }
   .h-gate-indicator .gear-display { font-size: 22px; }
-  .h-gate-knob { width: 26px; height: 26px; margin-left: -13px; margin-top: -13px; }
+  .h-gate-knob { width: 24px; height: 24px; margin-left: -12px; margin-top: -12px; }
   .telemetry-bar { padding: 0 12px; font-size: 10px; }
 }
 

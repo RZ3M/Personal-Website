@@ -1,6 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  BriefcaseBusiness,
+  CodeXml,
+  FolderCode,
+  GraduationCap,
+  Heart,
+  House,
+  Mail,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 import { sectionNav } from "../../lib/portfolio-data";
 
 interface HPatternShifterProps {
@@ -20,17 +31,74 @@ type NodeId =
   | "G1" | "G2" | "G3" | "G4" | "G5" | "G6" | "G7" | "G8"
   | "R0" | "R1" | "R2" | "R3";
 
-const SVG_W = 220;
-const SVG_H = 160;
+const SVG_W = 160;
+const SVG_H = 250;
 
+// Columns x=26,62,98,134 (36px apart). Top y=65, rail y=125, bottom y=185.
+// ~60px headroom above/below gear positions for icons.
 const SVG_POSITIONS: Record<NodeId, { x: number; y: number }> = {
-  G1: { x: 30, y: 22 },  G2: { x: 30, y: 138 },
-  G3: { x: 83, y: 22 },  G4: { x: 83, y: 138 },
-  G5: { x: 137, y: 22 }, G6: { x: 137, y: 138 },
-  G7: { x: 190, y: 22 }, G8: { x: 190, y: 138 },
-  R0: { x: 30, y: 80 },  R1: { x: 83, y: 80 },
-  R2: { x: 137, y: 80 }, R3: { x: 190, y: 80 },
+  G1: { x: 26,  y: 65  }, G2: { x: 26,  y: 185 },
+  G3: { x: 62,  y: 65  }, G4: { x: 62,  y: 185 },
+  G5: { x: 98,  y: 65  }, G6: { x: 98,  y: 185 },
+  G7: { x: 134, y: 65  }, G8: { x: 134, y: 185 },
+  R0: { x: 26,  y: 125 }, R1: { x: 62,  y: 125 },
+  R2: { x: 98,  y: 125 }, R3: { x: 134, y: 125 },
 };
+
+// Groove drawn as 4 continuous vertical columns + 1 horizontal rail.
+// No endpoints at rail nodes → no round-cap bumps at T-junctions.
+// The feMorphology "close" filter rounds the concave inside corners.
+const COL_XS = [26, 62, 98, 134];
+const GEAR_TOP_Y = 65;
+const GEAR_BOT_Y = 185;
+const RAIL_Y = 125;
+const GROOVE_OUTER_WIDTH = 16;
+const GROOVE_INNER_WIDTH = 10;
+const GROOVE_RADIUS = 7;
+const ICON_SIZE = 24;
+const ICON_OFFSET = 40;
+
+const GEAR_ICONS: Record<number, LucideIcon> = {
+  1: House,
+  2: UserRound,
+  3: BriefcaseBusiness,
+  4: FolderCode,
+  5: CodeXml,
+  6: GraduationCap,
+  7: Heart,
+  8: Mail,
+};
+
+interface GrooveRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rx: number;
+}
+
+function createGrooveRects(width: number): GrooveRect[] {
+  const half = width / 2;
+  return [
+    ...COL_XS.map((cx) => ({
+      x: cx - half,
+      y: GEAR_TOP_Y - half,
+      width,
+      height: GEAR_BOT_Y - GEAR_TOP_Y + width,
+      rx: Math.min(GROOVE_RADIUS, half),
+    })),
+    {
+      x: COL_XS[0] - half,
+      y: RAIL_Y - half,
+      width: COL_XS[3] - COL_XS[0] + width,
+      height: width,
+      rx: Math.min(GROOVE_RADIUS, half),
+    },
+  ];
+}
+
+const OUTER_GROOVE_RECTS = createGrooveRects(GROOVE_OUTER_WIDTH);
+const INNER_GROOVE_RECTS = createGrooveRects(GROOVE_INNER_WIDTH);
 
 interface GraphNode {
   id: NodeId;
@@ -91,7 +159,6 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
   const [knobX, setKnobX] = useState(SVG_POSITIONS.G1.x);
   const [knobY, setKnobY] = useState(SVG_POSITIONS.G1.y);
   const [isDragging, setIsDragging] = useState(false);
-  const [activeEdges, setActiveEdges] = useState<Set<string>>(new Set());
 
   const isAnimatingRef = useRef(false);
   const animFrameRef = useRef(0);
@@ -120,20 +187,6 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
     }
     return best;
   }, []);
-
-  const computeActiveEdges = useCallback((x: number, y: number): Set<string> => {
-    const edges = new Set<string>();
-    const nearest = findNearestNode(x, y);
-    const gearNode = nodeMap.get(nearest);
-    if (gearNode?.gear) {
-      const path = bfsPath("G1", nearest);
-      for (let i = 0; i < path.length - 1; i++) {
-        const key = [path[i], path[i + 1]].sort().join("-");
-        edges.add(key);
-      }
-    }
-    return edges;
-  }, [findNearestNode]);
 
   const animateToGear = useCallback((targetGear: number) => {
     if (isAnimatingRef.current) {
@@ -179,7 +232,6 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
           lastSyncedGearRef.current = gearNode.gear;
         }
         isAnimatingRef.current = false;
-        setActiveEdges(computeActiveEdges(toPos.x, toPos.y));
         return;
       }
 
@@ -209,9 +261,8 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
     };
 
     animFrameRef.current = requestAnimationFrame(step);
-  }, [computeActiveEdges, findNearestNode]);
+  }, [findNearestNode]);
 
-  // Scroll sync: always track latest activeSectionIndex
   useEffect(() => {
     const targetGear = activeSectionIndex + 1;
     if (isDraggingRef.current) return;
@@ -282,7 +333,6 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
     knobXRef.current = bestX;
     knobYRef.current = bestY;
 
-    // Snap threshold in SVG pixels
     const snapThreshold = 12;
     for (const node of NODES) {
       const pos = SVG_POSITIONS[node.id];
@@ -290,15 +340,11 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
       const dy = pos.y - bestY;
       if (Math.sqrt(dx * dx + dy * dy) < snapThreshold) {
         nearestNodeRef.current = node.id;
-        if (node.gear) {
-          setCurrentGear(node.gear);
-        }
+        if (node.gear) setCurrentGear(node.gear);
         break;
       }
     }
-
-    setActiveEdges(computeActiveEdges(bestX, bestY));
-  }, [computeActiveEdges]);
+  }, []);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     (e.target as HTMLElement).releasePointerCapture(e.pointerId);
@@ -316,7 +362,6 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
       lastSyncedGearRef.current = node.gear;
       onGearEngage(node.gear - 1);
     } else {
-      // Released on rail — snap back to current gear
       const targetGear = currentGearRef.current;
       lastSyncedGearRef.current = targetGear;
       onGearEngage(targetGear - 1);
@@ -325,7 +370,6 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
   }, [animateToGear, onGearEngage]);
 
   const sectionLabel = sectionNav[currentGear - 1]?.label ?? "";
-
   const knobLeft = (knobX / SVG_W) * 100;
   const knobTop = (knobY / SVG_H) * 100;
 
@@ -344,6 +388,14 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
               <stop offset="65%" stopColor="#1e1e2e" />
               <stop offset="100%" stopColor="#141420" />
             </linearGradient>
+            <linearGradient id="grooveShellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#000000" stopOpacity="0.94" />
+              <stop offset="100%" stopColor="#000000" stopOpacity="0.78" />
+            </linearGradient>
+            <linearGradient id="grooveFloorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#07070d" />
+              <stop offset="100%" stopColor="#020205" />
+            </linearGradient>
             <filter id="shifterGlow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="3" result="blur" />
               <feMerge>
@@ -355,88 +407,78 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
 
           {/* Plate background */}
           <rect x="0" y="0" width={SVG_W} height={SVG_H} rx="12" fill="url(#shifterPlateGrad)" />
-          {/* Subtle plate edge highlight */}
           <rect x="0.75" y="0.75" width={SVG_W - 1.5} height={SVG_H - 1.5} rx="11.5"
             fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5" />
 
-          {/* Groove shadow layer — dark outer rim of channel */}
-          {EDGES.map(([a, b]) => {
-            const posA = SVG_POSITIONS[a];
-            const posB = SVG_POSITIONS[b];
-            return (
-              <line
-                key={`shadow-${a}-${b}`}
-                x1={posA.x} y1={posA.y}
-                x2={posB.x} y2={posB.y}
-                stroke="rgba(0,0,0,0.85)"
-                strokeWidth="14"
-                strokeLinecap="round"
+          {/* Groove shell and floor are filled rounded slots, closer to a machined gate plate. */}
+          <g>
+            {OUTER_GROOVE_RECTS.map((rect, index) => (
+              <rect
+                key={`groove-outer-${index}`}
+                x={rect.x}
+                y={rect.y}
+                width={rect.width}
+                height={rect.height}
+                rx={rect.rx}
+                fill="url(#grooveShellGrad)"
               />
-            );
-          })}
-
-          {/* Groove floor — deep black channel interior */}
-          {EDGES.map(([a, b]) => {
-            const posA = SVG_POSITIONS[a];
-            const posB = SVG_POSITIONS[b];
-            return (
-              <line
-                key={`floor-${a}-${b}`}
-                x1={posA.x} y1={posA.y}
-                x2={posB.x} y2={posB.y}
-                stroke="#060609"
-                strokeWidth="8"
-                strokeLinecap="round"
+            ))}
+          </g>
+          <g>
+            {INNER_GROOVE_RECTS.map((rect, index) => (
+              <rect
+                key={`groove-inner-${index}`}
+                x={rect.x}
+                y={rect.y}
+                width={rect.width}
+                height={rect.height}
+                rx={rect.rx}
+                fill="url(#grooveFloorGrad)"
               />
-            );
-          })}
+            ))}
+          </g>
 
-          {/* Active edge glow */}
-          {EDGES.map(([a, b]) => {
-            const edgeKey = [a, b].sort().join("-");
-            if (!activeEdges.has(edgeKey)) return null;
-            const posA = SVG_POSITIONS[a];
-            const posB = SVG_POSITIONS[b];
-            return (
-              <line
-                key={`glow-${a}-${b}`}
-                x1={posA.x} y1={posA.y}
-                x2={posB.x} y2={posB.y}
-                stroke="rgba(230,57,70,0.35)"
-                strokeWidth="6"
-                strokeLinecap="round"
-                filter="url(#shifterGlow)"
-              />
-            );
-          })}
-
-          {/* Gear endpoint circles + labels */}
+          {/*
+            Section icons — rendered LAST so they're on top of the groove.
+            Icons act as click targets (no gear circles).
+            Top-row gears (1,3,5,7): icon 40px above gear center.
+            Bottom-row gears (2,4,6,8): icon 40px below gear center.
+          */}
           {NODES.filter(n => n.gear !== undefined).map((node) => {
+            const gear = node.gear!;
+            const Icon = GEAR_ICONS[gear];
+            if (!Icon) return null;
             const pos = SVG_POSITIONS[node.id];
-            const isActive = node.gear === currentGear;
+            const isActive = gear === currentGear;
+            const isTopRow = pos.y < RAIL_Y;
+            const iconCY = isTopRow ? pos.y - ICON_OFFSET : pos.y + ICON_OFFSET;
+            const iconColor = isActive ? "#e63946" : "rgba(85,85,120,0.8)";
+            const iconX = pos.x - ICON_SIZE / 2;
+            const iconY = iconCY - ICON_SIZE / 2;
+
             return (
-              <g
-                key={node.id}
-                onClick={() => node.gear !== undefined && handleGearClick(node.gear)}
-                style={{ cursor: "none" }}
-              >
-                <circle
-                  cx={pos.x} cy={pos.y} r="10"
-                  fill={isActive ? "rgba(230,57,70,0.18)" : "rgba(6,6,10,0.92)"}
-                  stroke={isActive ? "#e63946" : "rgba(70,70,95,0.7)"}
-                  strokeWidth="1.5"
-                  filter={isActive ? "url(#shifterGlow)" : undefined}
+              <g key={`icon-${node.id}`}
+                onClick={() => handleGearClick(gear)}
+                style={{ cursor: "none" }}>
+                {/* Shared icon box keeps every mark on the same visual rhythm. */}
+                <rect
+                  x={pos.x - 14} y={iconCY - 14}
+                  width={28} height={28}
+                  fill="transparent"
                 />
-                <text
-                  x={pos.x} y={pos.y + 4}
-                  textAnchor="middle"
-                  fontSize="8.5"
-                  fontFamily="'Share Tech Mono', monospace"
-                  fill={isActive ? "#e63946" : "rgba(90,90,120,0.9)"}
-                  style={{ pointerEvents: "none", userSelect: "none" }}
-                >
-                  {node.gear}
-                </text>
+                <svg
+                  x={iconX}
+                  y={iconY}
+                  width={ICON_SIZE}
+                  height={ICON_SIZE}
+                  filter={isActive ? "url(#shifterGlow)" : undefined}>
+                  <Icon
+                    size={ICON_SIZE}
+                    color={iconColor}
+                    strokeWidth={1.75}
+                    absoluteStrokeWidth
+                  />
+                </svg>
               </g>
             );
           })}
@@ -446,10 +488,7 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
         <div
           className="h-gate-knob"
           data-dragging={isDragging}
-          style={{
-            left: `${knobLeft}%`,
-            top: `${knobTop}%`,
-          }}
+          style={{ left: `${knobLeft}%`, top: `${knobTop}%` }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
