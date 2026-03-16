@@ -1718,27 +1718,61 @@ a:hover { color: var(--red); }
 
   // Wankel parameters
   const GEN_R = 100;    // generating radius (rotor center-to-apex)
-  const ECC = 15;       // eccentricity (e)
-  // Housing: epitrochoid x(t) = e*cos(3t) + R*cos(t)
-  //                      y(t) = e*sin(3t) + R*sin(t)
+  const ECC = 17;       // eccentricity
+  // Housing epitrochoid (= path traced by each rotor apex):
+  //   x(t) = R·cos(t) + e·cos(3t)
+  //   y(t) = R·sin(t) + e·sin(3t)
 
-  // Pre-compute housing path (epitrochoid)
+  // Pre-compute housing path
   const HOUSING_STEPS = 360;
   const housingPoints = [];
   for (let i = 0; i <= HOUSING_STEPS; i++) {
     const t = (i / HOUSING_STEPS) * Math.PI * 2;
     housingPoints.push({
-      x: RC + ECC * Math.cos(3 * t) + GEN_R * Math.cos(t),
-      y: RC + ECC * Math.sin(3 * t) + GEN_R * Math.sin(t)
+      x: RC + GEN_R * Math.cos(t) + ECC * Math.cos(3 * t),
+      y: RC + GEN_R * Math.sin(t) + ECC * Math.sin(3 * t)
     });
   }
 
-  // Generate rotor shape points (envelope of epitrochoid)
-  // The rotor side between two apexes follows the inner envelope
-  // For an accurate Wankel rotor, each side is computed from the
-  // epitrochoid envelope in the rotor's reference frame.
-  // Side curvature: flatter than Reuleaux triangle (per research).
-  function getRotorPath(rotorCx, rotorCy, rotorAngle, steps) {
+  // ── Pre-compute rotor envelope (inner envelope of housing in rotor frame) ──
+  // The correct Wankel rotor is NOT a Reuleaux triangle — its sides are flatter.
+  // We compute it numerically: for each direction in the rotor frame, find the
+  // minimum distance from rotor center to the housing across all shaft angles.
+  const PROFILE_RES = 360;
+  const rotorProfile = new Float64Array(PROFILE_RES).fill(Infinity);
+
+  for (let ti = 0; ti < 900; ti++) {
+    const theta = (ti / 900) * 6 * Math.PI; // 3 shaft revolutions = 1 rotor revolution
+    const rcx = ECC * Math.cos(theta);
+    const rcy = ECC * Math.sin(theta);
+    const rAng = theta / 3;
+    const cr = Math.cos(rAng);
+    const sr = Math.sin(rAng);
+
+    for (let si = 0; si < 900; si++) {
+      const s = (si / 900) * 2 * Math.PI;
+      // Housing point in world frame
+      const hx = GEN_R * Math.cos(s) + ECC * Math.cos(3 * s);
+      const hy = GEN_R * Math.sin(s) + ECC * Math.sin(3 * s);
+      // Transform to rotor frame: translate then rotate by -rAng
+      const dx = hx - rcx;
+      const dy = hy - rcy;
+      const rx = dx * cr + dy * sr;
+      const ry = -dx * sr + dy * cr;
+      // Polar in rotor frame
+      const dist = Math.sqrt(rx * rx + ry * ry);
+      let angle = Math.atan2(ry, rx);
+      if (angle < 0) angle += 2 * Math.PI;
+      const idx = Math.floor(angle / (2 * Math.PI) * PROFILE_RES) % PROFILE_RES;
+      if (dist < rotorProfile[idx]) {
+        rotorProfile[idx] = dist;
+      }
+    }
+  }
+
+  // Generate rotor points from pre-computed envelope profile
+  function getRotorPath(rotorCx, rotorCy, rotorAngle) {
+    const points = [];
     const apexes = [];
     for (let i = 0; i < 3; i++) {
       const a = rotorAngle + i * (2 * Math.PI / 3);
@@ -1747,36 +1781,14 @@ a:hover { color: var(--red); }
         y: rotorCy + GEN_R * Math.sin(a)
       });
     }
-
-    // Build rotor outline using envelope-derived curvature
-    // Each side: compute points along the inner envelope between apexes
-    const points = [];
-    const sideSteps = steps || 30;
-
-    for (let i = 0; i < 3; i++) {
-      const a0 = rotorAngle + i * (2 * Math.PI / 3);
-      const a1 = rotorAngle + (i + 1) * (2 * Math.PI / 3);
-
-      for (let s = 0; s <= sideSteps; s++) {
-        const frac = s / sideSteps;
-        const a = a0 + frac * (2 * Math.PI / 3);
-
-        // Envelope of epitrochoid in rotor frame:
-        // The inner profile that seals against the housing.
-        // Point on housing at parameter that corresponds to this rotor angle,
-        // computed as distance from rotor center along radial direction.
-        // r(θ) = R + e·cos(2θ) gives the radial distance from rotor center
-        // to the envelope curve (the "trochoid difference" envelope).
-        const localAngle = a - rotorAngle; // angle relative to rotor
-        const rDist = GEN_R - 2 * ECC + 2 * ECC * Math.cos(3 * localAngle);
-        // This creates a proper Wankel rotor profile:
-        // max at apexes (rDist ≈ R), min at side midpoints (rDist ≈ R - 4e)
-
-        points.push({
-          x: rotorCx + rDist * Math.cos(a),
-          y: rotorCy + rDist * Math.sin(a)
-        });
-      }
+    for (let i = 0; i < PROFILE_RES; i++) {
+      const localAngle = (i / PROFILE_RES) * 2 * Math.PI;
+      const worldAngle = localAngle + rotorAngle;
+      const r = rotorProfile[i];
+      points.push({
+        x: rotorCx + r * Math.cos(worldAngle),
+        y: rotorCy + r * Math.sin(worldAngle)
+      });
     }
     return { points, apexes };
   }
@@ -1787,6 +1799,12 @@ a:hover { color: var(--red); }
 
   function drawRotaryEngine() {
     rctx.clearRect(0, 0, 680, 680);
+
+    // Rotate entire engine 90° so housing lobes are top/bottom (upright)
+    rctx.save();
+    rctx.translate(RC, RC);
+    rctx.rotate(-Math.PI / 2);
+    rctx.translate(-RC, -RC);
 
     // --- Outer glow ring ---
     const gradient = rctx.createRadialGradient(RC, RC, 80, RC, RC, 160);
@@ -1807,20 +1825,17 @@ a:hover { color: var(--red); }
     rctx.strokeStyle = 'rgba(230,57,70,0.5)';
     rctx.lineWidth = 2;
     rctx.stroke();
-
     // Housing glow
     rctx.strokeStyle = 'rgba(230,57,70,0.12)';
     rctx.lineWidth = 6;
     rctx.stroke();
 
     // --- Rotor ---
-    // Rotor center orbits housing center at distance e
     const rotorCx = RC + ECC * Math.cos(shaftAngle);
     const rotorCy = RC + ECC * Math.sin(shaftAngle);
-    // Rotor rotates at 1/3 shaft speed
     const rotorAng = shaftAngle / 3;
 
-    const { points, apexes } = getRotorPath(rotorCx, rotorCy, rotorAng, 40);
+    const { points, apexes } = getRotorPath(rotorCx, rotorCy, rotorAng);
 
     // Rotor fill
     rctx.beginPath();
@@ -1829,83 +1844,109 @@ a:hover { color: var(--red); }
       rctx.lineTo(points[i].x, points[i].y);
     }
     rctx.closePath();
-    rctx.fillStyle = 'rgba(230,57,70,0.06)';
+    rctx.fillStyle = 'rgba(230,57,70,0.05)';
     rctx.fill();
-    rctx.strokeStyle = 'rgba(230,57,70,0.8)';
-    rctx.lineWidth = 1.5;
+    rctx.strokeStyle = 'rgba(230,57,70,0.7)';
+    rctx.lineWidth = 2;
+    rctx.stroke();
+    rctx.strokeStyle = 'rgba(230,57,70,0.08)';
+    rctx.lineWidth = 6;
     rctx.stroke();
 
-    // Inner rotor detail (smaller version)
+    // --- Internal gear ring (rotor gear, like real Mazda rotor) ---
+    const gearRadius = 38;
+    const gearTeeth = 24;
     rctx.beginPath();
-    const innerScale = 0.55;
-    for (let i = 0; i < points.length; i++) {
-      const ix = rotorCx + (points[i].x - rotorCx) * innerScale;
-      const iy = rotorCy + (points[i].y - rotorCy) * innerScale;
-      if (i === 0) rctx.moveTo(ix, iy);
-      else rctx.lineTo(ix, iy);
+    for (let i = 0; i <= gearTeeth * 4; i++) {
+      const a = (i / (gearTeeth * 4)) * Math.PI * 2;
+      const r = gearRadius + (i % 4 < 2 ? 5 : 0);
+      const gx = rotorCx + r * Math.cos(a + rotorAng);
+      const gy = rotorCy + r * Math.sin(a + rotorAng);
+      if (i === 0) rctx.moveTo(gx, gy);
+      else rctx.lineTo(gx, gy);
     }
     rctx.closePath();
-    rctx.strokeStyle = 'rgba(230,57,70,0.2)';
+    rctx.strokeStyle = 'rgba(230,57,70,0.25)';
     rctx.lineWidth = 1;
     rctx.stroke();
 
-    // Apex seal dots (the 3 contact points)
+    // Inner gear circle
+    rctx.beginPath();
+    rctx.arc(rotorCx, rotorCy, gearRadius - 4, 0, Math.PI * 2);
+    rctx.strokeStyle = 'rgba(230,57,70,0.15)';
+    rctx.lineWidth = 1;
+    rctx.stroke();
+
+    // Center hub
+    rctx.beginPath();
+    rctx.arc(rotorCx, rotorCy, 18, 0, Math.PI * 2);
+    rctx.fillStyle = 'rgba(230,57,70,0.03)';
+    rctx.fill();
+    rctx.strokeStyle = 'rgba(230,57,70,0.2)';
+    rctx.lineWidth = 1.5;
+    rctx.stroke();
+
+    // Apex seal dots
     apexes.forEach(ap => {
       rctx.beginPath();
       rctx.arc(ap.x, ap.y, 3, 0, Math.PI * 2);
       rctx.fillStyle = 'rgba(0,180,216,0.9)';
       rctx.fill();
-      // Seal glow
       rctx.beginPath();
       rctx.arc(ap.x, ap.y, 7, 0, Math.PI * 2);
-      rctx.fillStyle = 'rgba(0,180,216,0.15)';
+      rctx.fillStyle = 'rgba(0,180,216,0.12)';
       rctx.fill();
     });
 
-    // --- Eccentric shaft ---
-    // Center bearing
+    // --- Stationary gear (at housing center) ---
+    const sGearRadius = 24;
+    const sGearTeeth = 16;
     rctx.beginPath();
-    rctx.arc(RC, RC, 8, 0, Math.PI * 2);
-    rctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    rctx.lineWidth = 1;
-    rctx.stroke();
-    // Center dot
-    rctx.beginPath();
-    rctx.arc(RC, RC, 2.5, 0, Math.PI * 2);
-    rctx.fillStyle = 'rgba(230,57,70,0.7)';
-    rctx.fill();
-    // Eccentric journal (line from center to rotor center)
-    rctx.beginPath();
-    rctx.moveTo(RC, RC);
-    rctx.lineTo(rotorCx, rotorCy);
-    rctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    rctx.lineWidth = 3;
-    rctx.stroke();
-    // Rotor center bearing
-    rctx.beginPath();
-    rctx.arc(rotorCx, rotorCy, 5, 0, Math.PI * 2);
-    rctx.strokeStyle = 'rgba(230,57,70,0.3)';
+    for (let i = 0; i <= sGearTeeth * 4; i++) {
+      const a = (i / (sGearTeeth * 4)) * Math.PI * 2;
+      const r = sGearRadius + (i % 4 < 2 ? 3 : 0);
+      rctx.lineTo(RC + r * Math.cos(a), RC + r * Math.sin(a));
+    }
+    rctx.closePath();
+    rctx.strokeStyle = 'rgba(255,255,255,0.12)';
     rctx.lineWidth = 1;
     rctx.stroke();
 
-    // --- Port indicators ---
-    // Intake (left), Exhaust (right), Spark (top)
+    // Center bearing + dot
+    rctx.beginPath();
+    rctx.arc(RC, RC, 10, 0, Math.PI * 2);
+    rctx.fillStyle = 'rgba(230,57,70,0.04)';
+    rctx.fill();
+    rctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    rctx.lineWidth = 1;
+    rctx.stroke();
+    rctx.beginPath();
+    rctx.arc(RC, RC, 3, 0, Math.PI * 2);
+    rctx.fillStyle = 'rgba(230,57,70,0.7)';
+    rctx.fill();
+
+    rctx.restore(); // end rotation
+
+    // --- Port labels (drawn AFTER rotation so text is upright) ---
+    const portDist = GEN_R + ECC + 28;
     const ports = [
-      { angle: Math.PI, color: 'rgba(0,180,216,0.4)', label: 'IN' },
-      { angle: 0, color: 'rgba(255,107,53,0.4)', label: 'EX' },
-      { angle: -Math.PI / 2, color: 'rgba(6,214,160,0.4)', label: 'SP' }
+      { angle: Math.PI, color: 'rgba(0,180,216,0.4)', label: 'INTAKE' },
+      { angle: 0, color: 'rgba(255,107,53,0.4)', label: 'EXHAUST' },
+      { angle: -Math.PI / 2, color: 'rgba(6,214,160,0.4)', label: 'SPARK' }
     ];
     ports.forEach(p => {
-      const px = RC + (GEN_R + ECC + 20) * Math.cos(p.angle);
-      const py = RC + (GEN_R + ECC + 20) * Math.sin(p.angle);
+      // Rotate port positions by -90° to match engine orientation
+      const rotated = p.angle + Math.PI / 2;
+      const px = RC + portDist * Math.cos(rotated);
+      const py = RC + portDist * Math.sin(rotated);
       rctx.beginPath();
-      rctx.arc(px, py, 4, 0, Math.PI * 2);
+      rctx.arc(px, py, 3, 0, Math.PI * 2);
       rctx.fillStyle = p.color;
       rctx.fill();
-      rctx.font = '10px "Share Tech Mono"';
-      rctx.fillStyle = 'rgba(255,255,255,0.2)';
+      rctx.font = '9px "Share Tech Mono"';
+      rctx.fillStyle = 'rgba(255,255,255,0.18)';
       rctx.textAlign = 'center';
-      rctx.fillText(p.label, px, py + 16);
+      rctx.fillText(p.label, px, py + 14);
     });
   }
 
