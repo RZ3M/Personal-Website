@@ -333,9 +333,9 @@ a:hover { color: var(--red); }
 /* Rotary Engine Canvas */
 .rotary-engine-container {
   position: relative;
-  width: 340px;
-  height: 340px;
-  margin-bottom: 48px;
+  width: min(420px, 55vw);
+  height: min(420px, 55vw);
+  margin-bottom: 12px;
 }
 
 #rotaryCanvas {
@@ -345,11 +345,11 @@ a:hover { color: var(--red); }
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(48px, 8vw, 96px);
+  font-size: clamp(42px, 7vw, 80px);
   font-weight: 900;
   letter-spacing: 8px;
   line-height: 1;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   background: linear-gradient(135deg, var(--text-primary) 0%, var(--red) 50%, var(--blue) 100%);
   background-size: 200% 200%;
   -webkit-background-clip: text;
@@ -365,11 +365,11 @@ a:hover { color: var(--red); }
 
 .hero-subtitle {
   font-family: var(--font-mono);
-  font-size: clamp(14px, 2vw, 18px);
+  font-size: clamp(12px, 1.6vw, 16px);
   color: var(--text-secondary);
   letter-spacing: 6px;
   text-transform: uppercase;
-  margin-bottom: 32px;
+  margin-bottom: 14px;
 }
 
 .hero-tagline {
@@ -382,7 +382,7 @@ a:hover { color: var(--red); }
 
 .scroll-indicator {
   position: absolute;
-  bottom: 40px;
+  bottom: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1140,7 +1140,7 @@ a:hover { color: var(--red); }
 @media (max-width: 600px) {
   .section { padding: 80px 20px 50px; }
   .hero-title { letter-spacing: 4px; }
-  .rotary-engine-container { width: 220px; height: 220px; }
+  .rotary-engine-container { width: 280px; height: 280px; }
   .tach-nav { display: none; }
   .contact-links { flex-direction: column; align-items: center; }
   .passions-grid { grid-template-columns: 1fr 1fr; }
@@ -1230,7 +1230,7 @@ a:hover { color: var(--red); }
   <div class="hero-bg-grid"></div>
 
   <div class="rotary-engine-container" id="rotaryEngine">
-    <canvas id="rotaryCanvas" width="680" height="680"></canvas>
+    <canvas id="rotaryCanvas" width="1040" height="1040"></canvas>
   </div>
 
   <h1 class="hero-title">JACK MA</h1>
@@ -1714,11 +1714,11 @@ a:hover { color: var(--red); }
      ───────────────────────────────────── */
   const rotaryCanvas = document.getElementById('rotaryCanvas');
   const rctx = rotaryCanvas.getContext('2d');
-  const RC = 340; // canvas center (half of 680)
+  const RC = 520; // canvas center (half of 1040)
 
   // Wankel parameters
-  const GEN_R = 100;    // generating radius (rotor center-to-apex)
-  const ECC = 17;       // eccentricity
+  const GEN_R = 150;    // generating radius (rotor center-to-apex)
+  const ECC = 25;       // eccentricity
   // Housing epitrochoid (= path traced by each rotor apex):
   //   x(t) = R·cos(t) + e·cos(3t)
   //   y(t) = R·sin(t) + e·sin(3t)
@@ -1738,28 +1738,27 @@ a:hover { color: var(--red); }
   // The correct Wankel rotor is NOT a Reuleaux triangle — its sides are flatter.
   // We compute it numerically: for each direction in the rotor frame, find the
   // minimum distance from rotor center to the housing across all shaft angles.
-  const PROFILE_RES = 360;
+  const PROFILE_RES = 720;
   const rotorProfile = new Float64Array(PROFILE_RES).fill(Infinity);
 
-  for (let ti = 0; ti < 900; ti++) {
-    const theta = (ti / 900) * 6 * Math.PI; // 3 shaft revolutions = 1 rotor revolution
+  const N_THETA = 1200;
+  const N_S = 1200;
+  for (let ti = 0; ti < N_THETA; ti++) {
+    const theta = (ti / N_THETA) * 6 * Math.PI; // 3 shaft revolutions = 1 rotor revolution
     const rcx = ECC * Math.cos(theta);
     const rcy = ECC * Math.sin(theta);
     const rAng = theta / 3;
     const cr = Math.cos(rAng);
     const sr = Math.sin(rAng);
 
-    for (let si = 0; si < 900; si++) {
-      const s = (si / 900) * 2 * Math.PI;
-      // Housing point in world frame
+    for (let si = 0; si < N_S; si++) {
+      const s = (si / N_S) * 2 * Math.PI;
       const hx = GEN_R * Math.cos(s) + ECC * Math.cos(3 * s);
       const hy = GEN_R * Math.sin(s) + ECC * Math.sin(3 * s);
-      // Transform to rotor frame: translate then rotate by -rAng
       const dx = hx - rcx;
       const dy = hy - rcy;
       const rx = dx * cr + dy * sr;
       const ry = -dx * sr + dy * cr;
-      // Polar in rotor frame
       const dist = Math.sqrt(rx * rx + ry * ry);
       let angle = Math.atan2(ry, rx);
       if (angle < 0) angle += 2 * Math.PI;
@@ -1768,6 +1767,13 @@ a:hover { color: var(--red); }
         rotorProfile[idx] = dist;
       }
     }
+  }
+
+  // Shrink rotor profile very slightly to eliminate any remaining overlap
+  // caused by sampling resolution (1-2px clearance)
+  const ROTOR_SHRINK = 0.985;
+  for (let i = 0; i < PROFILE_RES; i++) {
+    rotorProfile[i] *= ROTOR_SHRINK;
   }
 
   // Generate rotor points from pre-computed envelope profile
@@ -1798,7 +1804,7 @@ a:hover { color: var(--red); }
   let scrollSpeed = 0;
 
   function drawRotaryEngine() {
-    rctx.clearRect(0, 0, 680, 680);
+    rctx.clearRect(0, 0, 1040, 1040);
 
     // Rotate entire engine 90° so housing lobes are top/bottom (upright)
     rctx.save();
@@ -1807,11 +1813,11 @@ a:hover { color: var(--red); }
     rctx.translate(-RC, -RC);
 
     // --- Outer glow ring ---
-    const gradient = rctx.createRadialGradient(RC, RC, 80, RC, RC, 160);
+    const gradient = rctx.createRadialGradient(RC, RC, 120, RC, RC, 240);
     gradient.addColorStop(0, 'rgba(230,57,70,0.02)');
     gradient.addColorStop(1, 'rgba(230,57,70,0)');
     rctx.beginPath();
-    rctx.arc(RC, RC, 160, 0, Math.PI * 2);
+    rctx.arc(RC, RC, 240, 0, Math.PI * 2);
     rctx.fillStyle = gradient;
     rctx.fill();
 
@@ -1853,100 +1859,91 @@ a:hover { color: var(--red); }
     rctx.lineWidth = 6;
     rctx.stroke();
 
-    // --- Internal gear ring (rotor gear, like real Mazda rotor) ---
-    const gearRadius = 38;
-    const gearTeeth = 24;
+    // ── Rotor internal gear ring (cosmetic, rotates with rotor) ──
+    const ROTOR_TEETH = 30;
+    const ROTOR_GEAR_R = 56;
+    const TOOTH_DEPTH = 5;
     rctx.beginPath();
-    for (let i = 0; i <= gearTeeth * 4; i++) {
-      const a = (i / (gearTeeth * 4)) * Math.PI * 2;
-      const r = gearRadius + (i % 4 < 2 ? 5 : 0);
-      const gx = rotorCx + r * Math.cos(a + rotorAng);
-      const gy = rotorCy + r * Math.sin(a + rotorAng);
+    const pts = ROTOR_TEETH * 4;
+    for (let i = 0; i <= pts; i++) {
+      const a = (i / pts) * Math.PI * 2 + rotorAng;
+      const r = ROTOR_GEAR_R + (i % 4 < 2 ? 0 : TOOTH_DEPTH);
+      const gx = rotorCx + r * Math.cos(a);
+      const gy = rotorCy + r * Math.sin(a);
       if (i === 0) rctx.moveTo(gx, gy);
       else rctx.lineTo(gx, gy);
     }
     rctx.closePath();
-    rctx.strokeStyle = 'rgba(230,57,70,0.25)';
+    rctx.strokeStyle = 'rgba(230,57,70,0.2)';
+    rctx.lineWidth = 1.5;
+    rctx.stroke();
+
+    // Inner circle of gear
+    rctx.beginPath();
+    rctx.arc(rotorCx, rotorCy, ROTOR_GEAR_R - 2, 0, Math.PI * 2);
+    rctx.strokeStyle = 'rgba(230,57,70,0.1)';
     rctx.lineWidth = 1;
     rctx.stroke();
 
-    // Inner gear circle
+    // Center hub of rotor
     rctx.beginPath();
-    rctx.arc(rotorCx, rotorCy, gearRadius - 4, 0, Math.PI * 2);
-    rctx.strokeStyle = 'rgba(230,57,70,0.15)';
-    rctx.lineWidth = 1;
-    rctx.stroke();
-
-    // Center hub
-    rctx.beginPath();
-    rctx.arc(rotorCx, rotorCy, 18, 0, Math.PI * 2);
+    rctx.arc(rotorCx, rotorCy, 24, 0, Math.PI * 2);
     rctx.fillStyle = 'rgba(230,57,70,0.03)';
     rctx.fill();
-    rctx.strokeStyle = 'rgba(230,57,70,0.2)';
+    rctx.strokeStyle = 'rgba(230,57,70,0.18)';
     rctx.lineWidth = 1.5;
     rctx.stroke();
 
     // Apex seal dots
     apexes.forEach(ap => {
       rctx.beginPath();
-      rctx.arc(ap.x, ap.y, 3, 0, Math.PI * 2);
+      rctx.arc(ap.x, ap.y, 4, 0, Math.PI * 2);
       rctx.fillStyle = 'rgba(0,180,216,0.9)';
       rctx.fill();
       rctx.beginPath();
-      rctx.arc(ap.x, ap.y, 7, 0, Math.PI * 2);
-      rctx.fillStyle = 'rgba(0,180,216,0.12)';
+      rctx.arc(ap.x, ap.y, 9, 0, Math.PI * 2);
+      rctx.fillStyle = 'rgba(0,180,216,0.1)';
       rctx.fill();
     });
 
-    // --- Stationary gear (at housing center) ---
-    const sGearRadius = 24;
-    const sGearTeeth = 16;
+    // Center bearing + eccentric shaft dot
     rctx.beginPath();
-    for (let i = 0; i <= sGearTeeth * 4; i++) {
-      const a = (i / (sGearTeeth * 4)) * Math.PI * 2;
-      const r = sGearRadius + (i % 4 < 2 ? 3 : 0);
-      rctx.lineTo(RC + r * Math.cos(a), RC + r * Math.sin(a));
-    }
-    rctx.closePath();
-    rctx.strokeStyle = 'rgba(255,255,255,0.12)';
-    rctx.lineWidth = 1;
-    rctx.stroke();
-
-    // Center bearing + dot
-    rctx.beginPath();
-    rctx.arc(RC, RC, 10, 0, Math.PI * 2);
+    rctx.arc(RC, RC, 14, 0, Math.PI * 2);
     rctx.fillStyle = 'rgba(230,57,70,0.04)';
     rctx.fill();
     rctx.strokeStyle = 'rgba(255,255,255,0.15)';
     rctx.lineWidth = 1;
     rctx.stroke();
     rctx.beginPath();
-    rctx.arc(RC, RC, 3, 0, Math.PI * 2);
+    rctx.arc(RC, RC, 4, 0, Math.PI * 2);
     rctx.fillStyle = 'rgba(230,57,70,0.7)';
     rctx.fill();
 
     rctx.restore(); // end rotation
 
-    // --- Port labels (drawn AFTER rotation so text is upright) ---
-    const portDist = GEN_R + ECC + 28;
+    // --- Port labels (drawn AFTER rotation so text stays upright) ---
+    // After -90° rotation: right→top, left→bottom, top→left
+    // Real Wankel: intake=top-left, exhaust=bottom, spark=top-right
+    const portDist = GEN_R + ECC + 36;
     const ports = [
-      { angle: Math.PI, color: 'rgba(0,180,216,0.4)', label: 'INTAKE' },
-      { angle: 0, color: 'rgba(255,107,53,0.4)', label: 'EXHAUST' },
-      { angle: -Math.PI / 2, color: 'rgba(6,214,160,0.4)', label: 'SPARK' }
+      { x: RC - portDist * 0.85, y: RC - portDist * 0.5, color: 'rgba(0,180,216,0.5)', label: 'INTAKE' },
+      { x: RC + portDist * 0.85, y: RC - portDist * 0.5, color: 'rgba(6,214,160,0.5)', label: 'SPARK' },
+      { x: RC, y: RC + portDist * 0.95, color: 'rgba(255,107,53,0.5)', label: 'EXHAUST' }
     ];
     ports.forEach(p => {
-      // Rotate port positions by -90° to match engine orientation
-      const rotated = p.angle + Math.PI / 2;
-      const px = RC + portDist * Math.cos(rotated);
-      const py = RC + portDist * Math.sin(rotated);
       rctx.beginPath();
-      rctx.arc(px, py, 3, 0, Math.PI * 2);
+      rctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
       rctx.fillStyle = p.color;
       rctx.fill();
-      rctx.font = '9px "Share Tech Mono"';
-      rctx.fillStyle = 'rgba(255,255,255,0.18)';
+      // Glow
+      rctx.beginPath();
+      rctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+      rctx.fillStyle = p.color.replace('0.5)', '0.08)');
+      rctx.fill();
+      rctx.font = '12px "Share Tech Mono"';
+      rctx.fillStyle = 'rgba(255,255,255,0.25)';
       rctx.textAlign = 'center';
-      rctx.fillText(p.label, px, py + 14);
+      rctx.fillText(p.label, p.x, p.y + 22);
     });
   }
 
