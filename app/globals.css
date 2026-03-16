@@ -98,76 +98,95 @@ a:hover { color: var(--red); }
 }
 
 /* ═══════════════════════════════════════════════════════
-   TACHOMETER NAV
+   H-PATTERN SHIFTER
    ═══════════════════════════════════════════════════════ */
-.tach-nav {
+.h-pattern-shifter {
   position: fixed;
-  right: 24px;
+  right: 20px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 1000;
+  width: 190px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Gate plate — SVG provides the surface, this is just sizing + shadow */
+.h-gate-plate {
+  position: relative;
+  width: 100%;
+  border-radius: 14px;
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(255,255,255,0.04);
+}
+
+.h-gate-plate svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+/* Shift knob — larger, sphere-like */
+.h-gate-knob {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  margin-left: -16px;
+  margin-top: -16px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #6a6a7a 0%,
+    #3a3a4a 30%,
+    #1e1e2a 60%,
+    #0e0e16 100%
+  );
+  border: 2px solid rgba(255,255,255,0.12);
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.8),
+    0 0 16px var(--red-glow),
+    inset 0 1px 3px rgba(255,255,255,0.15);
+  z-index: 10;
+  cursor: none;
+  touch-action: none;
+  transition: transform 0.1s, box-shadow 0.2s;
+}
+
+.h-gate-knob[data-dragging="true"] {
+  transform: scale(1.2);
+  box-shadow:
+    0 6px 20px rgba(0,0,0,0.9),
+    0 0 28px var(--red-glow),
+    inset 0 1px 3px rgba(255,255,255,0.2);
+}
+
+/* Gear indicator */
+.h-gate-indicator {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
 
-.tach-nav .rpm-bar {
-  width: 4px;
-  height: 20px;
-  background: var(--text-dim);
-  border-radius: 2px;
-  transition: all 0.4s ease;
-  position: relative;
+.h-gate-indicator .gear-display {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--red);
+  line-height: 1;
+  text-shadow: 0 0 16px var(--red-glow);
 }
 
-.tach-nav .rpm-bar.active {
-  background: var(--red);
-  box-shadow: 0 0 8px var(--red-glow);
-  width: 5px;
-}
-
-.tach-nav .rpm-bar.redline {
-  background: var(--red);
-  animation: redlinePulse 0.5s ease-in-out infinite alternate;
-}
-
-.tach-nav .rpm-label {
+.h-gate-indicator .section-label {
   font-family: var(--font-mono);
   font-size: 9px;
   color: var(--text-dim);
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  letter-spacing: 2px;
-  margin-top: 8px;
-  transition: color 0.3s;
-}
-
-.tach-nav .rpm-label.active {
-  color: var(--red);
-}
-
-.tach-nav .nav-link {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  cursor: none;
-  padding: 6px 8px;
-  transition: transform 0.3s;
-}
-
-.tach-nav .nav-link:hover {
-  transform: scale(1.1);
-}
-
-.tach-nav .nav-link:hover .rpm-bar {
-  background: var(--blue);
-  box-shadow: 0 0 8px var(--blue-glow);
-}
-
-@keyframes redlinePulse {
-  to { box-shadow: 0 0 14px var(--red-glow), 0 0 28px rgba(230,57,70,0.15); }
+  letter-spacing: 3px;
+  text-transform: uppercase;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1122,8 +1141,9 @@ a:hover { color: var(--red); }
   .skills-dashboard { grid-template-columns: 1fr; }
   .education-grid { grid-template-columns: 1fr; }
   .projects-grid { grid-template-columns: 1fr; }
-  .tach-nav { right: 10px; }
-  .tach-nav .rpm-label { display: none; }
+  .h-pattern-shifter { right: 8px; width: 150px; }
+  .h-gate-indicator .gear-display { font-size: 22px; }
+  .h-gate-knob { width: 26px; height: 26px; margin-left: -13px; margin-top: -13px; }
   .telemetry-bar { padding: 0 12px; font-size: 10px; }
 }
 
@@ -1131,7 +1151,8 @@ a:hover { color: var(--red); }
   .section { padding: 80px 20px 50px; }
   .hero-title { letter-spacing: 4px; }
   .rotary-engine-container { width: 280px; height: 280px; }
-  .tach-nav { display: none; }
+  .h-gate-plate { display: none; }
+  .h-pattern-shifter { right: 12px; width: auto; }
   .contact-links { flex-direction: column; align-items: center; }
   .passions-grid { grid-template-columns: 1fr 1fr; }
   .skill-gauge-label { min-width: 70px; font-size: 10px; }

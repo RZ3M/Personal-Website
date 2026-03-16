@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import {
   aboutStats,
@@ -13,6 +13,7 @@ import {
   skillPanels,
   type ExperiencePart,
 } from "../../lib/portfolio-data";
+import { HPatternShifter } from "./HPatternShifter";
 
 const HERO_TAGLINE =
   "Engineering elegant systems. Designing real things. Chasing the redline.";
@@ -103,9 +104,22 @@ export function PortfolioApp() {
   const taglineRef = useRef<HTMLParagraphElement>(null);
   const lastScrollYRef = useRef(0);
   const rotaryBoostRef = useRef(0);
+  const scrollSourceRef = useRef<"user" | "shifter">("user");
+  const scrollTargetRef = useRef<number | null>(null);
 
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
   const [scrollPercent, setScrollPercent] = useState(0);
+
+  const handleGearEngage = useCallback((index: number) => {
+    scrollSourceRef.current = "shifter";
+    scrollTargetRef.current = index;
+    document.getElementById(sectionNav[index].id)?.scrollIntoView({ behavior: "smooth" });
+    // Fallback: clear guard after 2s if section never enters viewport
+    setTimeout(() => {
+      scrollSourceRef.current = "user";
+      scrollTargetRef.current = null;
+    }, 2000);
+  }, []);
 
   useEffect(() => {
     const dot = cursorDotRef.current;
@@ -671,6 +685,16 @@ export function PortfolioApp() {
       });
 
       setScrollPercent(nextScrollPercent);
+      if (scrollSourceRef.current === "shifter") {
+        if (nextActiveIndex === scrollTargetRef.current) {
+          // Target reached — unlock scroll guard
+          scrollSourceRef.current = "user";
+          scrollTargetRef.current = null;
+          setActiveSectionIndex(nextActiveIndex);
+        }
+        // Don't update activeSectionIndex while still scrolling to target
+        return;
+      }
       setActiveSectionIndex(nextActiveIndex);
     };
 
@@ -768,34 +792,15 @@ export function PortfolioApp() {
           {String(rpm).padStart(4, "0")} RPM
         </div>
         <div className="right-data">
-          <span id="teleSection">{sectionNav[activeSectionIndex]?.label ?? "HERO"}</span>
+          <span id="teleSection">G{activeSectionIndex + 1} {sectionNav[activeSectionIndex]?.label ?? "HERO"}</span>
           <span id="teleScroll">{Math.floor(scrollPercent * 100)}%</span>
         </div>
       </div>
 
-      <nav className="tach-nav" id="tachNav">
-        {sectionNav.map((section, index) => {
-          const active = index <= activeSectionIndex;
-          return (
-            <a
-              className="nav-link"
-              href={`#${section.id}`}
-              data-section={section.id}
-              key={section.id}
-            >
-              <div className={`rpm-bar${active ? " active" : ""}`} />
-              <div
-                className={`rpm-bar${section.redline ? " redline" : ""}${
-                  active ? " active" : ""
-                }`}
-              />
-              <div className={`rpm-label${active ? " active" : ""}`}>
-                {section.rpmLabel}
-              </div>
-            </a>
-          );
-        })}
-      </nav>
+      <HPatternShifter
+        activeSectionIndex={activeSectionIndex}
+        onGearEngage={handleGearEngage}
+      />
 
       <main>
         <section className="section hero" id="hero">

@@ -279,6 +279,17 @@ export const passions = [
   },
 ] as const;
 
+export const gearPositions = [
+  { gear: 1, col: 0, row: 0 },
+  { gear: 2, col: 0, row: 2 },
+  { gear: 3, col: 1, row: 0 },
+  { gear: 4, col: 1, row: 2 },
+  { gear: 5, col: 2, row: 0 },
+  { gear: 6, col: 2, row: 2 },
+  { gear: 7, col: 3, row: 0 },
+  { gear: 8, col: 3, row: 2 },
+] as const;
+
 export const contactLinks = [
   {
     label: "GitHub",
