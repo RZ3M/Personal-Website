@@ -106,16 +106,18 @@ export function PortfolioApp() {
   const rotaryBoostRef = useRef(0);
   const scrollSourceRef = useRef<"user" | "shifter">("user");
   const scrollTargetRef = useRef<number | null>(null);
+  const scrollGuardTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
   const [scrollPercent, setScrollPercent] = useState(0);
 
   const handleGearEngage = useCallback((index: number) => {
+    clearTimeout(scrollGuardTimeoutRef.current);
     scrollSourceRef.current = "shifter";
     scrollTargetRef.current = index;
     document.getElementById(sectionNav[index].id)?.scrollIntoView({ behavior: "smooth" });
     // Fallback: clear guard after 2s if section never enters viewport
-    setTimeout(() => {
+    scrollGuardTimeoutRef.current = setTimeout(() => {
       scrollSourceRef.current = "user";
       scrollTargetRef.current = null;
     }, 2000);

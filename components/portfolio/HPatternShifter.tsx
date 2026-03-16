@@ -99,6 +99,8 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
   const nearestNodeRef = useRef<NodeId>("G1");
   const isDraggingRef = useRef(false);
   const currentGearRef = useRef(1);
+  const knobXRef = useRef(SVG_POSITIONS.G1.x);
+  const knobYRef = useRef(SVG_POSITIONS.G1.y);
 
   useEffect(() => { isDraggingRef.current = isDragging; }, [isDragging]);
   useEffect(() => { currentGearRef.current = currentGear; }, [currentGear]);
@@ -139,7 +141,7 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
     }
     isAnimatingRef.current = true;
 
-    const fromNode = nearestNodeRef.current;
+    const fromNode = findNearestNode(knobXRef.current, knobYRef.current);
     const toNode = gearToNodeId(targetGear);
     const path = bfsPath(fromNode, toNode);
 
@@ -168,6 +170,8 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
         const toPos = SVG_POSITIONS[toNode];
         setKnobX(toPos.x);
         setKnobY(toPos.y);
+        knobXRef.current = toPos.x;
+        knobYRef.current = toPos.y;
         nearestNodeRef.current = toNode;
         const gearNode = nodeMap.get(toNode);
         if (gearNode?.gear) {
@@ -186,6 +190,8 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
 
       setKnobX(x);
       setKnobY(y);
+      knobXRef.current = x;
+      knobYRef.current = y;
 
       if (segmentProgress > 0.5) {
         nearestNodeRef.current = path[segmentIndex + 1];
@@ -203,13 +209,12 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
     };
 
     animFrameRef.current = requestAnimationFrame(step);
-  }, [computeActiveEdges]);
+  }, [computeActiveEdges, findNearestNode]);
 
-  // Scroll sync: don't interrupt an in-flight animation
+  // Scroll sync: always track latest activeSectionIndex
   useEffect(() => {
     const targetGear = activeSectionIndex + 1;
     if (isDraggingRef.current) return;
-    if (isAnimatingRef.current) return;
     if (targetGear === lastSyncedGearRef.current) return;
     lastSyncedGearRef.current = targetGear;
     animateToGear(targetGear);
@@ -274,6 +279,8 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
 
     setKnobX(bestX);
     setKnobY(bestY);
+    knobXRef.current = bestX;
+    knobYRef.current = bestY;
 
     // Snap threshold in SVG pixels
     const snapThreshold = 12;
@@ -285,15 +292,13 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
         nearestNodeRef.current = node.id;
         if (node.gear) {
           setCurrentGear(node.gear);
-          lastSyncedGearRef.current = node.gear;
-          onGearEngage(node.gear - 1);
         }
         break;
       }
     }
 
     setActiveEdges(computeActiveEdges(bestX, bestY));
-  }, [onGearEngage, computeActiveEdges]);
+  }, [computeActiveEdges]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     (e.target as HTMLElement).releasePointerCapture(e.pointerId);
@@ -306,10 +311,18 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
       const pos = SVG_POSITIONS[nearest];
       setKnobX(pos.x);
       setKnobY(pos.y);
+      knobXRef.current = pos.x;
+      knobYRef.current = pos.y;
+      lastSyncedGearRef.current = node.gear;
+      onGearEngage(node.gear - 1);
     } else {
-      animateToGear(currentGearRef.current);
+      // Released on rail — snap back to current gear
+      const targetGear = currentGearRef.current;
+      lastSyncedGearRef.current = targetGear;
+      onGearEngage(targetGear - 1);
+      animateToGear(targetGear);
     }
-  }, [animateToGear]);
+  }, [animateToGear, onGearEngage]);
 
   const sectionLabel = sectionNav[currentGear - 1]?.label ?? "";
 
