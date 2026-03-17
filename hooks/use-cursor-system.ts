@@ -5,13 +5,25 @@ import { useEffect, useRef } from "react";
 import type { RpmEngine } from "@/lib/rpm-engine";
 
 const HOVER_SELECTOR =
-  "a, button, .project-card, .passion-item, .stat-card, .edu-card, .contact-link, .cursor-hover-target";
+  "a, button, .project-card, .passion-item, .stat-card, .edu-card, .contact-link, .cursor-hover-target, [data-engine-interactive=\"true\"]";
 
-export function useCursorSystem(rpmEngineRef: { current: RpmEngine | null }) {
+interface CursorTelemetryState {
+  isHoveringEngine: boolean;
+  isThrottleActive: boolean;
+  throttle: number;
+}
+
+export function useCursorSystem(
+  rpmEngineRef: { current: RpmEngine | null },
+  cursorTelemetry: CursorTelemetryState,
+) {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
   const trailRefs = useRef<(HTMLDivElement | null)[]>([]);
   const lastPointerPosRef = useRef({ x: 0, y: 0, time: 0 });
+  const telemetryRef = useRef(cursorTelemetry);
+
+  telemetryRef.current = cursorTelemetry;
 
   useEffect(() => {
     const dot = dotRef.current;
@@ -74,6 +86,9 @@ export function useCursorSystem(rpmEngineRef: { current: RpmEngine | null }) {
       ringY += (mouseY - ringY) * 0.12;
       ring.style.left = `${ringX - 18}px`;
       ring.style.top = `${ringY - 18}px`;
+      ring.dataset.engineHover = String(telemetryRef.current.isHoveringEngine);
+      ring.dataset.throttleActive = String(telemetryRef.current.isThrottleActive);
+      ring.style.setProperty("--throttle-level", telemetryRef.current.throttle.toFixed(3));
 
       for (let i = trails.length - 1; i > 0; i -= 1) {
         trailPositions[i].x = trailPositions[i - 1].x;
@@ -112,7 +127,7 @@ export function useCursorSystem(rpmEngineRef: { current: RpmEngine | null }) {
       document.removeEventListener("pointerup", handlePointerUp);
       document.removeEventListener("pointercancel", handlePointerUp);
     };
-  }, []);
+  }, [rpmEngineRef]);
 
   return { dotRef, ringRef, trailRefs };
 }

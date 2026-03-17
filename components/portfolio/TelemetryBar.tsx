@@ -3,18 +3,21 @@ import { Thermometer } from "lucide-react";
 
 interface TelemetryBarProps {
   displayRpm: number;
+  displayThrottle: number;
+  isAtLimiter: boolean;
 }
 
 export const TelemetryBar = React.memo(function TelemetryBar({
   displayRpm,
+  displayThrottle,
+  isAtLimiter,
 }: TelemetryBarProps) {
   const normalizedRpm = Math.max(0, Math.min(1, (displayRpm - 750) / (9500 - 750)));
-  const isAtRedline = Math.floor(displayRpm) >= 9500;
   const oilTempCelsius = Math.round(72 + normalizedRpm * 46);
   const throttleSegments = 6;
   const activeThrottleSegments = Math.max(
-    1,
-    Math.min(throttleSegments, Math.round(normalizedRpm * throttleSegments)),
+    0,
+    Math.min(throttleSegments, Math.round(displayThrottle * throttleSegments)),
   );
 
   return (
@@ -26,7 +29,7 @@ export const TelemetryBar = React.memo(function TelemetryBar({
         </span>
       </div>
       <div
-        className={`rpm-readout${isAtRedline ? " redline" : ""}`}
+        className={`rpm-readout${isAtLimiter ? " redline" : ""}`}
         id="rpmReadout"
       >
         {String(Math.floor(displayRpm)).padStart(4, "0")} RPM

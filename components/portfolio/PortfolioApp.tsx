@@ -24,14 +24,26 @@ export function PortfolioApp() {
   const rpmEngineRef = useRef<RpmEngine | null>(null);
   const previousGearRef = useRef(1);
 
-  const { dotRef, ringRef, trailRefs } = useCursorSystem(rpmEngineRef);
+  const {
+    cursorTelemetry,
+    displayRpm,
+    displayThrottle,
+    engineRumbleStyle,
+    heroVisible,
+    heroEngineBindings,
+    isAtLimiter,
+    isThrottleActive,
+    miniCanvasRef,
+    miniEngineBindings,
+    rotaryCanvasRef,
+    showThrottleHint,
+  } = useRotaryAnimation(rpmEngineRef);
+  const { dotRef, ringRef, trailRefs } = useCursorSystem(rpmEngineRef, cursorTelemetry);
   const { canvasRef: particleCanvasRef } = useParticleCanvas();
-  const { activeSectionIndex, scrollPercent, handleGearEngage } = useScrollEngine(
+  const { activeSectionIndex, handleGearEngage } = useScrollEngine(
     rpmEngineRef,
     previousGearRef,
   );
-  const { displayRpm, heroVisible, rotaryCanvasRef, miniCanvasRef } =
-    useRotaryAnimation(rpmEngineRef);
   const { taglineTextRef, taglineCursorRef } = useTaglineTypewriter();
 
   return (
@@ -54,16 +66,31 @@ export function PortfolioApp() {
 
       <canvas id="particles-canvas" ref={particleCanvasRef} />
 
-      <TelemetryBar displayRpm={displayRpm} />
+      <TelemetryBar
+        displayRpm={displayRpm}
+        displayThrottle={displayThrottle}
+        isAtLimiter={isAtLimiter}
+      />
 
       <div className="right-nav-column">
-        <div className="mini-engine-wrapper" data-visible={!heroVisible}>
-          <canvas
-            ref={miniCanvasRef}
-            width={400}
-            height={400}
-            className="mini-rotary-canvas"
-          />
+        <div
+          className="mini-engine-wrapper"
+          data-throttle-active={isThrottleActive}
+          data-visible={!heroVisible}
+          data-engine-interactive="true"
+          {...miniEngineBindings}
+        >
+          <div className="engine-rumble-shell" style={engineRumbleStyle}>
+            <canvas
+              ref={miniCanvasRef}
+              width={400}
+              height={400}
+              className="mini-rotary-canvas"
+            />
+            <span className="engine-interaction-label" data-visible={showThrottleHint}>
+              HOLD TO REV
+            </span>
+          </div>
         </div>
         <HPatternShifter
           activeSectionIndex={activeSectionIndex}
@@ -74,7 +101,11 @@ export function PortfolioApp() {
 
       <main id="main-content">
         <HeroSection
+          engineRumbleStyle={engineRumbleStyle}
+          heroEngineBindings={heroEngineBindings}
+          isThrottleActive={isThrottleActive}
           rotaryCanvasRef={rotaryCanvasRef}
+          showThrottleHint={showThrottleHint}
           taglineTextRef={taglineTextRef}
           taglineCursorRef={taglineCursorRef}
         />
