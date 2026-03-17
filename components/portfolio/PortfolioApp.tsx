@@ -113,7 +113,8 @@ export function PortfolioApp() {
   const cursorDotRef = useRef<HTMLDivElement>(null);
   const cursorRingRef = useRef<HTMLDivElement>(null);
   const cursorTrailRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const taglineRef = useRef<HTMLParagraphElement>(null);
+  const taglineTextRef = useRef<HTMLSpanElement>(null);
+  const taglineCursorRef = useRef<HTMLSpanElement>(null);
   const lastScrollYRef = useRef(0);
   const scrollSourceRef = useRef<"user" | "shifter">("user");
   const scrollTargetRef = useRef<number | null>(null);
@@ -590,13 +591,14 @@ export function PortfolioApp() {
 
   // Hero tagline typewriter
   useEffect(() => {
-    const tagline = taglineRef.current;
-    if (!tagline) {
+    const taglineText = taglineTextRef.current;
+    const taglineCursor = taglineCursorRef.current;
+    if (!taglineText || !taglineCursor) {
       return;
     }
 
-    tagline.textContent = "";
-    tagline.style.borderRight = "2px solid var(--red)";
+    taglineText.textContent = "";
+    taglineCursor.style.opacity = "1";
 
     let charIndex = 0;
     let blinkCount = 0;
@@ -606,7 +608,7 @@ export function PortfolioApp() {
 
     const typeCharacter = () => {
       if (charIndex < HERO_TAGLINE.length) {
-        tagline.textContent += HERO_TAGLINE[charIndex];
+        taglineText.textContent += HERO_TAGLINE[charIndex];
         charIndex += 1;
         typeTimer = window.setTimeout(
           typeCharacter,
@@ -616,15 +618,12 @@ export function PortfolioApp() {
       }
 
       blinkTimer = window.setInterval(() => {
-        tagline.style.borderRight =
-          blinkCount % 2 === 0
-            ? "2px solid transparent"
-            : "2px solid var(--red)";
+        taglineCursor.style.opacity = blinkCount % 2 === 0 ? "0" : "1";
         blinkCount += 1;
 
         if (blinkCount > 6) {
           window.clearInterval(blinkTimer);
-          tagline.style.borderRight = "none";
+          taglineCursor.style.opacity = "0";
         }
       }, 500);
     };
@@ -635,8 +634,8 @@ export function PortfolioApp() {
       window.clearTimeout(startTimer);
       window.clearTimeout(typeTimer);
       window.clearInterval(blinkTimer);
-      tagline.style.borderRight = "none";
-      tagline.textContent = HERO_TAGLINE;
+      taglineCursor.style.opacity = "0";
+      taglineText.textContent = HERO_TAGLINE;
     };
   }, []);
 
@@ -705,14 +704,12 @@ export function PortfolioApp() {
           <p className="hero-subtitle">
             Software Engineer &nbsp;|&nbsp; Creator &nbsp;|&nbsp; Builder
           </p>
-          <p className="hero-tagline" ref={taglineRef}>
-            {HERO_TAGLINE}
+          <p className="hero-tagline">
+            <span className="hero-tagline-text" ref={taglineTextRef}>
+              {HERO_TAGLINE}
+            </span>
+            <span className="hero-tagline-cursor" ref={taglineCursorRef} aria-hidden="true" />
           </p>
-
-          <div className="scroll-indicator">
-            <span>Scroll to explore</span>
-            <div className="scroll-line" />
-          </div>
         </section>
         <WaveDivider index={1} />
 
