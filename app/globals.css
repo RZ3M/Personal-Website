@@ -280,6 +280,13 @@ button:focus-visible,
   letter-spacing: 2px;
 }
 
+.telemetry-bar .rpm-readout.redline {
+  animation: telemetryRedlineShake 0.11s steps(2, end) infinite;
+  text-shadow:
+    0 0 12px rgba(230,57,70,0.6),
+    0 0 28px rgba(230,57,70,0.4);
+}
+
 .telemetry-bar .right-data span {
   margin-left: 20px;
 }
@@ -296,6 +303,27 @@ button:focus-visible,
 @keyframes statusBlink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
+}
+
+@keyframes telemetryRedlineShake {
+  0% {
+    transform: translate(0, 0) scale(1.01) skewX(0deg);
+  }
+  20% {
+    transform: translate(-0.5px, -0.5px) scale(1.04) skewX(-1deg);
+  }
+  40% {
+    transform: translate(1px, 0.5px) scale(1.02) skewX(1deg);
+  }
+  60% {
+    transform: translate(-1px, 0.5px) scale(1.05) skewX(-0.8deg);
+  }
+  80% {
+    transform: translate(1px, -0.5px) scale(1.03) skewX(0.8deg);
+  }
+  100% {
+    transform: translate(-0.5px, 0) scale(1.04) skewX(-1deg);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
