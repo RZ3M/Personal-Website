@@ -13,6 +13,8 @@ export const TelemetryBar = React.memo(function TelemetryBar({
   scrollPercent,
   activeSectionIndex,
 }: TelemetryBarProps) {
+  const isAtRedline = Math.floor(displayRpm) >= 9500;
+
   return (
     <div className="telemetry-bar">
       <div className="left-data">
@@ -21,7 +23,10 @@ export const TelemetryBar = React.memo(function TelemetryBar({
           SYSTEMS ONLINE
         </span>
       </div>
-      <div className="rpm-readout" id="rpmReadout">
+      <div
+        className={`rpm-readout${isAtRedline ? " redline" : ""}`}
+        id="rpmReadout"
+      >
         {String(Math.floor(displayRpm)).padStart(4, "0")} RPM
       </div>
       <div className="right-data">

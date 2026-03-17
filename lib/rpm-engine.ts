@@ -48,10 +48,10 @@ function clampTargetRpm(targetRpm: number, floorRpm: number): number {
 }
 
 export function rpmToRotationSpeed(rpm: number): number {
-  // Idle (~1600 RPM) → 0.035 rad/frame ≈ 0.33 rev/sec
-  // Redline (~9500 RPM) → 0.165 rad/frame ≈ 1.57 rev/sec
-  const base = 0.01 + (rpm / REDLINE_RPM) * 0.155;
-  if (rpm < 1200) return Math.max(0.004, base + (Math.random() - 0.5) * 0.004);
+  // Keep idle readable, then ramp more aggressively through the upper band.
+  const normalized = Math.max(0, Math.min(1, rpm / REDLINE_RPM));
+  const base = 0.012 + normalized * 0.18 + normalized * normalized * 0.12;
+  if (rpm < 1200) return Math.max(0.005, base + (Math.random() - 0.5) * 0.005);
   return base;
 }
 
@@ -79,12 +79,12 @@ export function createRpmEngine(): RpmEngine {
 
       state.targetRpm = clampTargetRpm(state.targetRpm, band.floor);
 
-      // Approach target: fast accel, slower decay
+      // Approach target: strong climb, moderately quick rotary-style drop
       const diff = state.targetRpm - state.rpm;
       if (diff > 0) {
         state.rpm = Math.min(state.targetRpm, state.rpm + 2500 * deltaSec);
       } else if (diff < 0) {
-        state.rpm = Math.max(state.targetRpm, state.rpm - 800 * deltaSec);
+        state.rpm = Math.max(state.targetRpm, state.rpm - 1450 * deltaSec);
       }
 
       state.rpm = clampRpm(state.rpm);
