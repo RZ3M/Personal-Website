@@ -70,9 +70,9 @@ export function useRotaryAnimation(rpmEngineRef: { current: RpmEngine | null }) 
       shaftAngle += rpmToRotationSpeed(rpm);
 
       if (heroVisibleRef.current) {
-        heroRenderer.draw(heroCtx, shaftAngle);
+        heroRenderer.draw(heroCtx, shaftAngle, { rpm });
       } else {
-        miniRenderer.draw(miniCtx, shaftAngle, { skipLabels: true, compact: true });
+        miniRenderer.draw(miniCtx, shaftAngle, { skipLabels: true, compact: true, rpm });
       }
 
       if (now - lastRpmUpdateTime > 66) {

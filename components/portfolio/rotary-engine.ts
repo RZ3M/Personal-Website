@@ -3,11 +3,14 @@
 // profile once at the given resolution, then returns a draw() function.
 // The reference canvas size is 1040; everything scales linearly from there.
 
+const FALLBACK_IDLE_RPM = 750;
+const REDLINE_RPM = 9500;
+
 export interface RotaryEngineRenderer {
   draw(
     ctx: CanvasRenderingContext2D,
     shaftAngle: number,
-    opts?: { skipLabels?: boolean; compact?: boolean },
+    opts?: { skipLabels?: boolean; compact?: boolean; rpm?: number },
   ): void;
 }
 
@@ -105,10 +108,11 @@ export function createRotaryEngineRenderer(
     draw(
       ctx: CanvasRenderingContext2D,
       shaftAngle: number,
-      opts?: { skipLabels?: boolean; compact?: boolean },
+      opts?: { skipLabels?: boolean; compact?: boolean; rpm?: number },
     ): void {
       const skipLabels = opts?.skipLabels ?? false;
       const compact = opts?.compact ?? false;
+      const rpm = opts?.rpm ?? FALLBACK_IDLE_RPM;
 
       ctx.clearRect(0, 0, canvasSize, canvasSize);
       ctx.save();
@@ -253,42 +257,58 @@ export function createRotaryEngineRenderer(
       // Port labels (skipped for mini canvas)
       if (!skipLabels) {
         const portDistance = generatingRadius + eccentricity + 36 * scale;
+        const cyclePhase = ((shaftAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const phaseWindow = (Math.PI * 2) / 3;
+        const normalizedRpm = Math.max(0, Math.min(1, rpm / REDLINE_RPM));
+        const pulseRadiusBoost = 2 + 8 * normalizedRpm;
+        const glowRadiusBoost = 6 + 18 * normalizedRpm;
+        const labelFontSize = Math.max(16 * scale, 18);
         const ports = [
           {
             x: canvasCenter - portDistance * 0.85,
             y: canvasCenter - portDistance * 0.5,
-            color: "rgba(0,180,216,0.5)",
+            color: "rgb(0,180,216)",
             label: "INTAKE",
+            phaseOffset: 0,
           },
           {
             x: canvasCenter + portDistance * 0.85,
-            y: canvasCenter - portDistance * 0.5,
-            color: "rgba(6,214,160,0.5)",
+            y: canvasCenter,
+            color: "rgb(6,214,160)",
             label: "SPARK",
+            phaseOffset: phaseWindow,
           },
           {
-            x: canvasCenter,
-            y: canvasCenter + portDistance * 0.95,
-            color: "rgba(255,107,53,0.5)",
+            x: canvasCenter - portDistance * 0.85,
+            y: canvasCenter + portDistance * 0.5,
+            color: "rgb(255,107,53)",
             label: "EXHAUST",
+            phaseOffset: phaseWindow * 2,
           },
         ];
 
         ports.forEach((port) => {
+          const phaseDelta = Math.abs(
+            ((((cyclePhase - port.phaseOffset) % (Math.PI * 2)) + Math.PI * 3) % (Math.PI * 2)) -
+              Math.PI,
+          );
+          const proximity = Math.max(0, 1 - phaseDelta / phaseWindow);
+          const pulse = 0.45 + proximity * (0.55 + normalizedRpm * 0.35);
+
           ctx.beginPath();
-          ctx.arc(port.x, port.y, 5 * scale, 0, Math.PI * 2);
-          ctx.fillStyle = port.color;
+          ctx.arc(port.x, port.y, (5 + pulse * pulseRadiusBoost) * scale, 0, Math.PI * 2);
+          ctx.fillStyle = port.color.replace("rgb(", "rgba(").replace(")", `, ${0.38 + pulse * 0.55})`);
           ctx.fill();
 
           ctx.beginPath();
-          ctx.arc(port.x, port.y, 10 * scale, 0, Math.PI * 2);
-          ctx.fillStyle = port.color.replace("0.5)", "0.08)");
+          ctx.arc(port.x, port.y, (10 + pulse * glowRadiusBoost) * scale, 0, Math.PI * 2);
+          ctx.fillStyle = port.color.replace("rgb(", "rgba(").replace(")", `, ${0.06 + pulse * 0.14})`);
           ctx.fill();
 
-          ctx.font = `${12 * scale}px "Share Tech Mono"`;
-          ctx.fillStyle = "rgba(255,255,255,0.25)";
+          ctx.font = `${labelFontSize}px "Share Tech Mono"`;
+          ctx.fillStyle = `rgba(255,255,255,${0.3 + pulse * 0.55})`;
           ctx.textAlign = "center";
-          ctx.fillText(port.label, port.x, port.y + 22 * scale);
+          ctx.fillText(port.label, port.x, port.y + 28 * scale);
         });
       }
     },
