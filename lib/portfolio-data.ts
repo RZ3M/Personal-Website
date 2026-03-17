@@ -292,6 +292,11 @@ export const gearPositions = [
 
 export const contactLinks = [
   {
+    label: "Resume",
+    href: "/Jack_2026.pdf",
+    icon: "resume",
+  },
+  {
     label: "GitHub",
     href: "https://github.com/RZ3M",
     icon: "github",

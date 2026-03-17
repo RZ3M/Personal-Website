@@ -74,6 +74,15 @@ function renderExperiencePart(part: ExperiencePart, index: number) {
 }
 
 function ContactIcon({ icon }: { icon: (typeof contactLinks)[number]["icon"] }) {
+  if (icon === "resume") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm6 1.5V9h4.5" />
+        <path d="M9 13h6M9 17h6M9 9h1.5" />
+      </svg>
+    );
+  }
+
   if (icon === "github") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -939,8 +948,9 @@ export function PortfolioApp() {
                 className="contact-link"
                 href={link.href}
                 key={link.label}
+                download={link.icon === "resume" ? "Jack_2026.pdf" : undefined}
                 rel={link.href.startsWith("http") ? "noopener" : undefined}
-                target={link.href.startsWith("http") ? "_blank" : undefined}
+                target={link.href.startsWith("http") || link.icon === "resume" ? "_blank" : undefined}
               >
                 <ContactIcon icon={link.icon} />
                 {link.label}
