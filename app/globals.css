@@ -297,11 +297,68 @@ button:focus-visible,
   justify-self: end;
   display: flex;
   align-items: center;
+  gap: 18px;
   white-space: nowrap;
 }
 
-.telemetry-bar .right-data span {
-  margin-left: 20px;
+.telemetry-bar .telemetry-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+  justify-content: flex-start;
+}
+
+.telemetry-bar .telemetry-chip-label {
+  color: var(--text-dim);
+  letter-spacing: 1.6px;
+  min-width: 24px;
+}
+
+.telemetry-bar .telemetry-chip-value {
+  color: var(--text-secondary);
+  letter-spacing: 1.4px;
+  min-width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.telemetry-bar .telemetry-chip-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--blue);
+  stroke-width: 2;
+}
+
+.telemetry-bar .throttle-hud {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 12px;
+  width: 39px;
+}
+
+.telemetry-bar .throttle-bar {
+  width: 4px;
+  height: 10px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+.telemetry-bar .throttle-bar.active {
+  background: linear-gradient(180deg, rgba(0,180,216,0.95) 0%, rgba(230,57,70,0.95) 100%);
+  box-shadow:
+    0 0 10px rgba(230,57,70,0.18),
+    0 0 14px rgba(0,180,216,0.1);
+}
+
+.telemetry-bar .throttle-chip {
+  width: 86px;
+}
+
+.telemetry-bar .oil-chip {
+  width: 96px;
 }
 
 .telemetry-bar .status-dot {

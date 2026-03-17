@@ -54,11 +54,7 @@ export function PortfolioApp() {
 
       <canvas id="particles-canvas" ref={particleCanvasRef} />
 
-      <TelemetryBar
-        displayRpm={displayRpm}
-        scrollPercent={scrollPercent}
-        activeSectionIndex={activeSectionIndex}
-      />
+      <TelemetryBar displayRpm={displayRpm} />
 
       <div className="right-nav-column">
         <div className="mini-engine-wrapper" data-visible={!heroVisible}>
