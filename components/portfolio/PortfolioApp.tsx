@@ -13,6 +13,8 @@ import {
   skillPanels,
   type ExperiencePart,
 } from "../../lib/portfolio-data";
+import { createRpmEngine, rpmToRotationSpeed, type RpmEngine } from "../../lib/rpm-engine";
+import { createRotaryEngineRenderer } from "./rotary-engine";
 import { HPatternShifter } from "./HPatternShifter";
 
 const HERO_TAGLINE =
@@ -98,20 +100,32 @@ function ContactIcon({ icon }: { icon: (typeof contactLinks)[number]["icon"] }) 
 export function PortfolioApp() {
   const particleCanvasRef = useRef<HTMLCanvasElement>(null);
   const rotaryCanvasRef = useRef<HTMLCanvasElement>(null);
+  const miniCanvasRef = useRef<HTMLCanvasElement>(null);
   const cursorDotRef = useRef<HTMLDivElement>(null);
   const cursorRingRef = useRef<HTMLDivElement>(null);
   const cursorTrailRefs = useRef<(HTMLDivElement | null)[]>([]);
   const taglineRef = useRef<HTMLParagraphElement>(null);
   const lastScrollYRef = useRef(0);
-  const rotaryBoostRef = useRef(0);
   const scrollSourceRef = useRef<"user" | "shifter">("user");
   const scrollTargetRef = useRef<number | null>(null);
   const scrollGuardTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const rpmEngineRef = useRef<RpmEngine | null>(null);
+  const heroVisibleRef = useRef(true);
+  const previousGearRef = useRef(1);
+  const lastPointerPosRef = useRef({ x: 0, y: 0, time: 0 });
 
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
   const [scrollPercent, setScrollPercent] = useState(0);
+  const [displayRpm, setDisplayRpm] = useState(750);
+  const [heroVisible, setHeroVisible] = useState(true);
 
   const handleGearEngage = useCallback((index: number) => {
+    const newGear = index + 1;
+    const oldGear = previousGearRef.current;
+    if (newGear > oldGear) rpmEngineRef.current?.upshift(oldGear, newGear);
+    else if (newGear < oldGear) rpmEngineRef.current?.downshift(oldGear, newGear);
+    previousGearRef.current = newGear;
+
     clearTimeout(scrollGuardTimeoutRef.current);
     scrollSourceRef.current = "shifter";
     scrollTargetRef.current = index;
@@ -123,6 +137,7 @@ export function PortfolioApp() {
     }, 2000);
   }, []);
 
+  // Cursor tracking + pointer energy
   useEffect(() => {
     const dot = cursorDotRef.current;
     const ring = cursorRingRef.current;
@@ -144,6 +159,20 @@ export function PortfolioApp() {
       mouseY = event.clientY;
       dot.style.left = `${mouseX - 4}px`;
       dot.style.top = `${mouseY - 4}px`;
+
+      // Compute pointer speed and inject energy
+      const now = performance.now();
+      const last = lastPointerPosRef.current;
+      const dt = now - last.time;
+      if (dt > 0) {
+        const dx = event.clientX - last.x;
+        const dy = event.clientY - last.y;
+        const speed = Math.sqrt(dx * dx + dy * dy) / dt; // px/ms
+        if (speed > 0.1) {
+          rpmEngineRef.current?.addPointerEnergy(speed);
+        }
+      }
+      lastPointerPosRef.current = { x: event.clientX, y: event.clientY, time: now };
     };
 
     const handleMouseOver = (event: MouseEvent) => {
@@ -223,6 +252,7 @@ export function PortfolioApp() {
     };
   }, []);
 
+  // Particle field
   useEffect(() => {
     const canvas = particleCanvasRef.current;
     if (!canvas) {
@@ -337,281 +367,88 @@ export function PortfolioApp() {
     };
   }, []);
 
+  // Rotary engine animation — uses RPM engine for speed, draws to hero or mini canvas
   useEffect(() => {
-    const canvas = rotaryCanvasRef.current;
-    if (!canvas) {
-      return;
-    }
+    rpmEngineRef.current = createRpmEngine();
 
-    const context = canvas.getContext("2d");
-    if (!context) {
-      return;
-    }
+    const heroCanvas = rotaryCanvasRef.current;
+    const miniCanvas = miniCanvasRef.current;
+    if (!heroCanvas || !miniCanvas) return;
 
-    const drawingContext = context;
+    const heroCtx = heroCanvas.getContext("2d");
+    const miniCtx = miniCanvas.getContext("2d");
+    if (!heroCtx || !miniCtx) return;
 
-    const canvasCenter = 520;
-    const generatingRadius = 150;
-    const eccentricity = 25;
-    const housingSteps = 360;
-    const housingPoints: Array<{ x: number; y: number }> = [];
-    for (let index = 0; index <= housingSteps; index += 1) {
-      const t = (index / housingSteps) * Math.PI * 2;
-      housingPoints.push({
-        x:
-          canvasCenter +
-          generatingRadius * Math.cos(t) +
-          eccentricity * Math.cos(3 * t),
-        y:
-          canvasCenter +
-          generatingRadius * Math.sin(t) +
-          eccentricity * Math.sin(3 * t),
-      });
-    }
-
-    const profileResolution = 720;
-    const rotorProfile = new Float64Array(profileResolution).fill(Infinity);
-    const thetaSteps = 1200;
-    const housingProfileSteps = 1200;
-
-    for (let thetaIndex = 0; thetaIndex < thetaSteps; thetaIndex += 1) {
-      const theta = (thetaIndex / thetaSteps) * 6 * Math.PI;
-      const rotorCenterX = eccentricity * Math.cos(theta);
-      const rotorCenterY = eccentricity * Math.sin(theta);
-      const rotorAngle = theta / 3;
-      const cosRotation = Math.cos(rotorAngle);
-      const sinRotation = Math.sin(rotorAngle);
-
-      for (let sampleIndex = 0; sampleIndex < housingProfileSteps; sampleIndex += 1) {
-        const s = (sampleIndex / housingProfileSteps) * 2 * Math.PI;
-        const housingX =
-          generatingRadius * Math.cos(s) + eccentricity * Math.cos(3 * s);
-        const housingY =
-          generatingRadius * Math.sin(s) + eccentricity * Math.sin(3 * s);
-        const dx = housingX - rotorCenterX;
-        const dy = housingY - rotorCenterY;
-        const rotatedX = dx * cosRotation + dy * sinRotation;
-        const rotatedY = -dx * sinRotation + dy * cosRotation;
-        const distance = Math.sqrt(rotatedX * rotatedX + rotatedY * rotatedY);
-        let angle = Math.atan2(rotatedY, rotatedX);
-        if (angle < 0) {
-          angle += 2 * Math.PI;
-        }
-        const profileIndex =
-          Math.floor((angle / (2 * Math.PI)) * profileResolution) %
-          profileResolution;
-
-        if (distance < rotorProfile[profileIndex]) {
-          rotorProfile[profileIndex] = distance;
-        }
-      }
-    }
-
-    for (let index = 0; index < profileResolution; index += 1) {
-      rotorProfile[index] *= 0.985;
-    }
-
-    const getRotorPath = (rotorCenterX: number, rotorCenterY: number, angle: number) => {
-      const points = [];
-      const apexes = [];
-
-      for (let index = 0; index < 3; index += 1) {
-        const apexAngle = angle + index * (2 * Math.PI / 3);
-        apexes.push({
-          x: rotorCenterX + generatingRadius * Math.cos(apexAngle),
-          y: rotorCenterY + generatingRadius * Math.sin(apexAngle),
-        });
-      }
-
-      for (let index = 0; index < profileResolution; index += 1) {
-        const localAngle = (index / profileResolution) * 2 * Math.PI;
-        const worldAngle = localAngle + angle;
-        const radius = rotorProfile[index];
-        points.push({
-          x: rotorCenterX + radius * Math.cos(worldAngle),
-          y: rotorCenterY + radius * Math.sin(worldAngle),
-        });
-      }
-
-      return { points, apexes };
-    };
+    const heroRenderer = createRotaryEngineRenderer(1040);
+    const miniRenderer = createRotaryEngineRenderer(400, { minLineWidth: 2 });
 
     let shaftAngle = 0;
     let frameId = 0;
+    let lastFrameTime = performance.now();
+    let lastRpmUpdateTime = 0;
 
-    const drawRotaryEngine = () => {
-      drawingContext.clearRect(0, 0, 1040, 1040);
-      drawingContext.save();
-      drawingContext.translate(canvasCenter, canvasCenter);
-      drawingContext.rotate(-Math.PI / 2);
-      drawingContext.translate(-canvasCenter, -canvasCenter);
+    const animate = () => {
+      const now = performance.now();
+      const deltaMs = now - lastFrameTime;
+      lastFrameTime = now;
 
-      const glowGradient = drawingContext.createRadialGradient(
-        canvasCenter,
-        canvasCenter,
-        120,
-        canvasCenter,
-        canvasCenter,
-        240,
-      );
-      glowGradient.addColorStop(0, "rgba(230,57,70,0.02)");
-      glowGradient.addColorStop(1, "rgba(230,57,70,0)");
+      const engine = rpmEngineRef.current!;
+      engine.tick(deltaMs);
+      const rpm = engine.getRpm();
 
-      drawingContext.beginPath();
-      drawingContext.arc(canvasCenter, canvasCenter, 240, 0, Math.PI * 2);
-      drawingContext.fillStyle = glowGradient;
-      drawingContext.fill();
+      shaftAngle += rpmToRotationSpeed(rpm);
 
-      drawingContext.beginPath();
-      drawingContext.moveTo(housingPoints[0].x, housingPoints[0].y);
-      for (let index = 1; index < housingPoints.length; index += 1) {
-        drawingContext.lineTo(housingPoints[index].x, housingPoints[index].y);
+      if (heroVisibleRef.current) {
+        heroRenderer.draw(heroCtx, shaftAngle);
+      } else {
+        miniRenderer.draw(miniCtx, shaftAngle, { skipLabels: true, compact: true });
       }
-      drawingContext.closePath();
-      drawingContext.strokeStyle = "rgba(230,57,70,0.5)";
-      drawingContext.lineWidth = 2;
-      drawingContext.stroke();
-      drawingContext.strokeStyle = "rgba(230,57,70,0.12)";
-      drawingContext.lineWidth = 6;
-      drawingContext.stroke();
 
-      const rotorCenterX = canvasCenter + eccentricity * Math.cos(shaftAngle);
-      const rotorCenterY = canvasCenter + eccentricity * Math.sin(shaftAngle);
-      const rotorAngle = shaftAngle / 3;
-      const { points, apexes } = getRotorPath(rotorCenterX, rotorCenterY, rotorAngle);
-
-      drawingContext.beginPath();
-      drawingContext.moveTo(points[0].x, points[0].y);
-      for (let index = 1; index < points.length; index += 1) {
-        drawingContext.lineTo(points[index].x, points[index].y);
+      // Throttle React state update to ~15fps
+      if (now - lastRpmUpdateTime > 66) {
+        setDisplayRpm(Math.floor(rpm));
+        lastRpmUpdateTime = now;
       }
-      drawingContext.closePath();
-      drawingContext.fillStyle = "rgba(230,57,70,0.05)";
-      drawingContext.fill();
-      drawingContext.strokeStyle = "rgba(230,57,70,0.7)";
-      drawingContext.lineWidth = 2;
-      drawingContext.stroke();
-      drawingContext.strokeStyle = "rgba(230,57,70,0.08)";
-      drawingContext.lineWidth = 6;
-      drawingContext.stroke();
 
-      const rotorTeeth = 30;
-      const rotorGearRadius = 56;
-      const toothDepth = 5;
-      const gearPoints = rotorTeeth * 4;
-
-      drawingContext.beginPath();
-      for (let index = 0; index <= gearPoints; index += 1) {
-        const angle = (index / gearPoints) * Math.PI * 2 + rotorAngle;
-        const radius = rotorGearRadius + (index % 4 < 2 ? 0 : toothDepth);
-        const gearX = rotorCenterX + radius * Math.cos(angle);
-        const gearY = rotorCenterY + radius * Math.sin(angle);
-
-        if (index === 0) {
-          drawingContext.moveTo(gearX, gearY);
-        } else {
-          drawingContext.lineTo(gearX, gearY);
-        }
-      }
-      drawingContext.closePath();
-      drawingContext.strokeStyle = "rgba(230,57,70,0.2)";
-      drawingContext.lineWidth = 1.5;
-      drawingContext.stroke();
-
-      drawingContext.beginPath();
-      drawingContext.arc(rotorCenterX, rotorCenterY, rotorGearRadius - 2, 0, Math.PI * 2);
-      drawingContext.strokeStyle = "rgba(230,57,70,0.1)";
-      drawingContext.lineWidth = 1;
-      drawingContext.stroke();
-
-      drawingContext.beginPath();
-      drawingContext.arc(rotorCenterX, rotorCenterY, 24, 0, Math.PI * 2);
-      drawingContext.fillStyle = "rgba(230,57,70,0.03)";
-      drawingContext.fill();
-      drawingContext.strokeStyle = "rgba(230,57,70,0.18)";
-      drawingContext.lineWidth = 1.5;
-      drawingContext.stroke();
-
-      apexes.forEach((apex) => {
-        drawingContext.beginPath();
-        drawingContext.arc(apex.x, apex.y, 4, 0, Math.PI * 2);
-        drawingContext.fillStyle = "rgba(0,180,216,0.9)";
-        drawingContext.fill();
-        drawingContext.beginPath();
-        drawingContext.arc(apex.x, apex.y, 9, 0, Math.PI * 2);
-        drawingContext.fillStyle = "rgba(0,180,216,0.1)";
-        drawingContext.fill();
-      });
-
-      drawingContext.beginPath();
-      drawingContext.arc(canvasCenter, canvasCenter, 14, 0, Math.PI * 2);
-      drawingContext.fillStyle = "rgba(230,57,70,0.04)";
-      drawingContext.fill();
-      drawingContext.strokeStyle = "rgba(255,255,255,0.15)";
-      drawingContext.lineWidth = 1;
-      drawingContext.stroke();
-
-      drawingContext.beginPath();
-      drawingContext.arc(canvasCenter, canvasCenter, 4, 0, Math.PI * 2);
-      drawingContext.fillStyle = "rgba(230,57,70,0.7)";
-      drawingContext.fill();
-
-      drawingContext.restore();
-
-      const portDistance = generatingRadius + eccentricity + 36;
-      const ports = [
-        {
-          x: canvasCenter - portDistance * 0.85,
-          y: canvasCenter - portDistance * 0.5,
-          color: "rgba(0,180,216,0.5)",
-          label: "INTAKE",
-        },
-        {
-          x: canvasCenter + portDistance * 0.85,
-          y: canvasCenter - portDistance * 0.5,
-          color: "rgba(6,214,160,0.5)",
-          label: "SPARK",
-        },
-        {
-          x: canvasCenter,
-          y: canvasCenter + portDistance * 0.95,
-          color: "rgba(255,107,53,0.5)",
-          label: "EXHAUST",
-        },
-      ];
-
-      ports.forEach((port) => {
-        drawingContext.beginPath();
-        drawingContext.arc(port.x, port.y, 5, 0, Math.PI * 2);
-        drawingContext.fillStyle = port.color;
-        drawingContext.fill();
-
-        drawingContext.beginPath();
-        drawingContext.arc(port.x, port.y, 10, 0, Math.PI * 2);
-        drawingContext.fillStyle = port.color.replace("0.5)", "0.08)");
-        drawingContext.fill();
-
-        drawingContext.font = '12px "Share Tech Mono"';
-        drawingContext.fillStyle = "rgba(255,255,255,0.25)";
-        drawingContext.textAlign = "center";
-        drawingContext.fillText(port.label, port.x, port.y + 22);
-      });
+      frameId = window.requestAnimationFrame(animate);
     };
 
-    const animateRotaryEngine = () => {
-      shaftAngle += 0.008 + rotaryBoostRef.current;
-      rotaryBoostRef.current *= 0.92;
-      drawRotaryEngine();
-      frameId = window.requestAnimationFrame(animateRotaryEngine);
-    };
-
-    frameId = window.requestAnimationFrame(animateRotaryEngine);
+    frameId = window.requestAnimationFrame(animate);
 
     return () => {
       window.cancelAnimationFrame(frameId);
     };
   }, []);
 
+  // Click energy
+  useEffect(() => {
+    const handleClick = () => {
+      rpmEngineRef.current?.addClickEnergy();
+    };
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
+
+  // Hero visibility observer — controls mini engine visibility
+  useEffect(() => {
+    const heroSection = document.getElementById("hero");
+    if (!heroSection) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          heroVisibleRef.current = entry.isIntersecting;
+          setHeroVisible(entry.isIntersecting);
+        });
+      },
+      { threshold: 0.05 },
+    );
+
+    observer.observe(heroSection);
+    return () => observer.disconnect();
+  }, []);
+
+  // Intersection observers for reveals, sections, waves, gauges
   useEffect(() => {
     const revealElements = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
     const timelineEntries = Array.from(
@@ -681,6 +518,7 @@ export function PortfolioApp() {
     };
   }, []);
 
+  // Scroll handler — feeds RPM engine, tracks active section, detects gear changes
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
@@ -690,10 +528,9 @@ export function PortfolioApp() {
       const scrollDelta = Math.abs(scrollY - lastScrollYRef.current);
 
       lastScrollYRef.current = scrollY;
-      rotaryBoostRef.current = Math.max(
-        rotaryBoostRef.current,
-        0.012 + scrollDelta * 0.015,
-      );
+
+      // Inject scroll energy into RPM engine
+      rpmEngineRef.current?.addScrollEnergy(scrollDelta);
 
       let nextActiveIndex = 0;
       sectionNav.forEach(({ id }, index) => {
@@ -719,6 +556,16 @@ export function PortfolioApp() {
         // Don't update activeSectionIndex while still scrolling to target
         return;
       }
+
+      // Detect gear changes from user scrolling
+      const newGear = nextActiveIndex + 1;
+      const oldGear = previousGearRef.current;
+      if (newGear !== oldGear) {
+        if (newGear > oldGear) rpmEngineRef.current?.upshift(oldGear, newGear);
+        else rpmEngineRef.current?.downshift(oldGear, newGear);
+        previousGearRef.current = newGear;
+      }
+
       setActiveSectionIndex(nextActiveIndex);
     };
 
@@ -732,6 +579,7 @@ export function PortfolioApp() {
     };
   }, []);
 
+  // Hero tagline typewriter
   useEffect(() => {
     const tagline = taglineRef.current;
     if (!tagline) {
@@ -783,9 +631,6 @@ export function PortfolioApp() {
     };
   }, []);
 
-  const rpm = Math.floor(scrollPercent * 9000);
-  const lap = String(activeSectionIndex + 1).padStart(2, "0");
-
   return (
     <>
       <div className="cursor-dot" id="cursorDot" ref={cursorDotRef} />
@@ -808,12 +653,9 @@ export function PortfolioApp() {
             <span className="status-dot" />
             SYSTEMS ONLINE
           </span>
-          <span>
-            LAP: <span id="teleLap">{lap}</span>/08
-          </span>
         </div>
         <div className="rpm-readout" id="rpmReadout">
-          {String(rpm).padStart(4, "0")} RPM
+          {String(Math.floor(displayRpm)).padStart(4, "0")} RPM
         </div>
         <div className="right-data">
           <span id="teleSection">G{activeSectionIndex + 1} {sectionNav[activeSectionIndex]?.label ?? "HERO"}</span>
@@ -821,10 +663,21 @@ export function PortfolioApp() {
         </div>
       </div>
 
-      <HPatternShifter
-        activeSectionIndex={activeSectionIndex}
-        onGearEngage={handleGearEngage}
-      />
+      <div className="right-nav-column">
+        <div className="mini-engine-wrapper" data-visible={!heroVisible}>
+          <canvas
+            ref={miniCanvasRef}
+            width={400}
+            height={400}
+            className="mini-rotary-canvas"
+          />
+        </div>
+        <HPatternShifter
+          activeSectionIndex={activeSectionIndex}
+          onGearEngage={handleGearEngage}
+          onDragMove={() => rpmEngineRef.current?.addShifterDragEnergy()}
+        />
+      </div>
 
       <main>
         <section className="section hero" id="hero">

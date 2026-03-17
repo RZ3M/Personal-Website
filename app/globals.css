@@ -98,14 +98,43 @@ a:hover { color: var(--red); }
 }
 
 /* ═══════════════════════════════════════════════════════
-   H-PATTERN SHIFTER
+   RIGHT NAV COLUMN (mini engine + shifter)
    ═══════════════════════════════════════════════════════ */
-.h-pattern-shifter {
+.right-nav-column {
   position: fixed;
   right: 20px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.mini-engine-wrapper {
+  width: 160px;
+  height: 160px;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+.mini-engine-wrapper[data-visible="true"] {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.mini-rotary-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════
+   H-PATTERN SHIFTER
+   ═══════════════════════════════════════════════════════ */
+.h-pattern-shifter {
   width: 140px;
   display: flex;
   flex-direction: column;
@@ -1142,7 +1171,9 @@ a:hover { color: var(--red); }
   .skills-dashboard { grid-template-columns: 1fr; }
   .education-grid { grid-template-columns: 1fr; }
   .projects-grid { grid-template-columns: 1fr; }
-  .h-pattern-shifter { right: 8px; width: 115px; }
+  .right-nav-column { right: 8px; }
+  .h-pattern-shifter { width: 115px; }
+  .mini-engine-wrapper { width: 130px; height: 130px; }
   .h-gate-indicator .gear-display { font-size: 22px; }
   .h-gate-knob { width: 24px; height: 24px; margin-left: -12px; margin-top: -12px; }
   .telemetry-bar { padding: 0 12px; font-size: 10px; }
@@ -1153,7 +1184,8 @@ a:hover { color: var(--red); }
   .hero-title { letter-spacing: 4px; }
   .rotary-engine-container { width: 280px; height: 280px; }
   .h-gate-plate { display: none; }
-  .h-pattern-shifter { right: 12px; width: auto; }
+  .h-pattern-shifter { width: auto; }
+  .mini-engine-wrapper { display: none; }
   .contact-links { flex-direction: column; align-items: center; }
   .passions-grid { grid-template-columns: 1fr 1fr; }
   .skill-gauge-label { min-width: 70px; font-size: 10px; }

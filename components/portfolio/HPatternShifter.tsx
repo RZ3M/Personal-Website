@@ -17,6 +17,7 @@ import { sectionNav } from "../../lib/portfolio-data";
 interface HPatternShifterProps {
   activeSectionIndex: number;
   onGearEngage: (index: number) => void;
+  onDragMove?: () => void;
   className?: string;
 }
 
@@ -153,7 +154,7 @@ function gearToNodeId(gear: number): NodeId {
   return `G${gear}` as NodeId;
 }
 
-export function HPatternShifter({ activeSectionIndex, onGearEngage, className }: HPatternShifterProps) {
+export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, className }: HPatternShifterProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [currentGear, setCurrentGear] = useState(1);
   const [knobX, setKnobX] = useState(SVG_POSITIONS.G1.x);
@@ -332,6 +333,8 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
     setKnobY(bestY);
     knobXRef.current = bestX;
     knobYRef.current = bestY;
+
+    onDragMove?.();
 
     const snapThreshold = 12;
     for (const node of NODES) {
