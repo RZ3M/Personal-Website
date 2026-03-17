@@ -1,3 +1,6 @@
+export const HERO_TAGLINE =
+  "Engineering elegant systems. Designing real things. Chasing the redline.";
+
 export type ExperiencePart =
   | { type: "text"; content: string }
   | { type: "tag"; content: string }
@@ -8,19 +11,17 @@ export type SkillColor = "red" | "blue" | "orange" | "green";
 type SectionNavItem = {
   id: string;
   label: string;
-  rpmLabel: string;
-  redline?: boolean;
 };
 
 export const sectionNav: readonly SectionNavItem[] = [
-  { id: "hero", label: "HERO", rpmLabel: "1K" },
-  { id: "about", label: "ABOUT", rpmLabel: "2K" },
-  { id: "experience", label: "EXPERIENCE", rpmLabel: "3K" },
-  { id: "projects", label: "PROJECTS", rpmLabel: "5K" },
-  { id: "skills", label: "SKILLS", rpmLabel: "6K" },
-  { id: "education", label: "EDUCATION", rpmLabel: "7K" },
-  { id: "passions", label: "PASSIONS", rpmLabel: "8K" },
-  { id: "contact", label: "CONTACT", rpmLabel: "9K", redline: true },
+  { id: "hero", label: "HERO" },
+  { id: "about", label: "ABOUT" },
+  { id: "experience", label: "EXPERIENCE" },
+  { id: "projects", label: "PROJECTS" },
+  { id: "skills", label: "SKILLS" },
+  { id: "education", label: "EDUCATION" },
+  { id: "passions", label: "PASSIONS" },
+  { id: "contact", label: "CONTACT" },
 ];
 
 export const aboutStats = [
@@ -164,11 +165,18 @@ export const projects = [
   },
 ] as const;
 
+type SkillPanel = {
+  title: string;
+  delayClass: string;
+  color: SkillColor;
+  skills: readonly { label: string; value: number }[];
+};
+
 export const skillPanels = [
   {
     title: "LANGUAGES",
     delayClass: "reveal-delay-2",
-    color: "red" as SkillColor,
+    color: "red",
     skills: [
       { label: "C#", value: 92 },
       { label: "Java", value: 90 },
@@ -182,7 +190,7 @@ export const skillPanels = [
   {
     title: "FRAMEWORKS",
     delayClass: "reveal-delay-3",
-    color: "blue" as SkillColor,
+    color: "blue",
     skills: [
       { label: "React", value: 92 },
       { label: "Next.js", value: 88 },
@@ -196,7 +204,7 @@ export const skillPanels = [
   {
     title: "DEVOPS & CLOUD",
     delayClass: "reveal-delay-2",
-    color: "orange" as SkillColor,
+    color: "orange",
     skills: [
       { label: "Docker", value: 90 },
       { label: "Azure", value: 88 },
@@ -210,7 +218,7 @@ export const skillPanels = [
   {
     title: "CONCEPTS",
     delayClass: "reveal-delay-3",
-    color: "green" as SkillColor,
+    color: "green",
     skills: [
       { label: "Full Stack", value: 94 },
       { label: "Microservices", value: 88 },
@@ -221,7 +229,7 @@ export const skillPanels = [
       { label: "Testing", value: 88 },
     ],
   },
-] as const;
+] satisfies SkillPanel[];
 
 export const education = [
   {
@@ -277,17 +285,6 @@ export const passions = [
     icon: "🎨",
     delayClass: "reveal-delay-4",
   },
-] as const;
-
-export const gearPositions = [
-  { gear: 1, col: 0, row: 0 },
-  { gear: 2, col: 0, row: 2 },
-  { gear: 3, col: 1, row: 0 },
-  { gear: 4, col: 1, row: 2 },
-  { gear: 5, col: 2, row: 0 },
-  { gear: 6, col: 2, row: 2 },
-  { gear: 7, col: 3, row: 0 },
-  { gear: 8, col: 3, row: 2 },
 ] as const;
 
 export const contactLinks = [
