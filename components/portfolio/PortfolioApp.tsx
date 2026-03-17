@@ -13,10 +13,8 @@ import { HPatternShifter } from "./HPatternShifter";
 import { TelemetryBar } from "./TelemetryBar";
 import { AboutSection } from "./sections/AboutSection";
 import { ContactSection } from "./sections/ContactSection";
-import { EducationSection } from "./sections/EducationSection";
 import { ExperienceSection } from "./sections/ExperienceSection";
 import { HeroSection } from "./sections/HeroSection";
-import { PassionsSection } from "./sections/PassionsSection";
 import { ProjectsSection } from "./sections/ProjectsSection";
 import { SkillsSection } from "./sections/SkillsSection";
 
@@ -113,8 +111,6 @@ export function PortfolioApp() {
         <ExperienceSection />
         <ProjectsSection />
         <SkillsSection />
-        <EducationSection />
-        <PassionsSection />
         <ContactSection />
       </main>
 

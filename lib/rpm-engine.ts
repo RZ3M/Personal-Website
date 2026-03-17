@@ -12,16 +12,16 @@ const LIMITER_RECOVER_RPM = REDLINE_RPM;
 
 type LimiterMode = "off" | "cut" | "recover";
 
-// Virtual RX-8-inspired ratio ladder for the portfolio's 8 section gears.
+const MAX_GEAR = 6;
+
+// Virtual RX-8-inspired ratio ladder for the portfolio's 6 section gears.
 export const GEAR_BANDS: GearBand[] = [
   { ratio: 3.76, floor: 900, cruise: 2500 }, // Gear 1 — Hero
-  { ratio: 2.48, floor: 1200, cruise: 3000 }, // Gear 2 — About
-  { ratio: 1.86, floor: 1600, cruise: 3500 }, // Gear 3 — Experience
-  { ratio: 1.50, floor: 2000, cruise: 4000 }, // Gear 4 — Projects
-  { ratio: 1.22, floor: 2400, cruise: 4500 }, // Gear 5 — Skills
-  { ratio: 1.01, floor: 2700, cruise: 5000 }, // Gear 6 — Education
-  { ratio: 0.84, floor: 3000, cruise: 5500 }, // Gear 7 — Passions
-  { ratio: 0.69, floor: 3400, cruise: 6000 }, // Gear 8 — Contact
+  { ratio: 2.42, floor: 1300, cruise: 3200 }, // Gear 2 — About
+  { ratio: 1.75, floor: 1750, cruise: 3900 }, // Gear 3 — Experience
+  { ratio: 1.30, floor: 2250, cruise: 4600 }, // Gear 4 — Projects
+  { ratio: 0.96, floor: 2850, cruise: 5300 }, // Gear 5 — Skills
+  { ratio: 0.69, floor: 3400, cruise: 6000 }, // Gear 6 — Contact
 ];
 
 export interface RpmEngine {
@@ -265,7 +265,7 @@ export function createRpmEngine(): RpmEngine {
     },
 
     setGear(gear: number): void {
-      state.gear = Math.max(1, Math.min(8, gear));
+      state.gear = Math.max(1, Math.min(MAX_GEAR, gear));
       exitLimiter();
     },
 

@@ -19,8 +19,6 @@ export const sectionNav: readonly SectionNavItem[] = [
   { id: "experience", label: "EXPERIENCE" },
   { id: "projects", label: "PROJECTS" },
   { id: "skills", label: "SKILLS" },
-  { id: "education", label: "EDUCATION" },
-  { id: "passions", label: "PASSIONS" },
   { id: "contact", label: "CONTACT" },
 ];
 
@@ -230,62 +228,6 @@ export const skillPanels = [
     ],
   },
 ] satisfies SkillPanel[];
-
-export const education = [
-  {
-    year: "2025",
-    school: "ONTARIO TECH UNIVERSITY",
-    degree: "Bachelor of Science (Honours) in Computer Science",
-    gpaLabel: "GPA:",
-    gpaValue: "3.86",
-    delayClass: "reveal-delay-2",
-  },
-  {
-    year: "2020",
-    school: "UNIVERSITY OF WATERLOO",
-    degree: "Bachelor of Applied Science in Electrical Engineering",
-    gpaText: "Engineering foundations",
-    delayClass: "reveal-delay-3",
-  },
-] as const;
-
-export const passions = [
-  {
-    title: "AI & AUTOMATION",
-    description:
-      "Building intelligent systems that automate the mundane and amplify the creative",
-    icon: "⚡",
-    delayClass: "",
-  },
-  {
-    title: "3D PRINTING",
-    description:
-      "Designing and printing my own models — from concept to physical reality",
-    model: true,
-    delayClass: "reveal-delay-1",
-  },
-  {
-    title: "ROTARY ENGINES",
-    description:
-      "The Wankel triangle of power. Proud former RX-8 owner. Brap brap brap.",
-    icon: "🔄",
-    delayClass: "reveal-delay-2",
-  },
-  {
-    title: "FORMULA 1",
-    description:
-      "Strategy, engineering, and speed — the ultimate intersection of tech and competition",
-    icon: "🏎️",
-    delayClass: "reveal-delay-3",
-  },
-  {
-    title: "ART & DESIGN",
-    description:
-      "Creative expression through digital and physical mediums — form meets function",
-    icon: "🎨",
-    delayClass: "reveal-delay-4",
-  },
-] as const;
 
 export const contactLinks = [
   {

@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import type { RpmEngine } from "@/lib/rpm-engine";
 
 const HOVER_SELECTOR =
-  "a, button, .project-card, .passion-item, .stat-card, .edu-card, .contact-link, .cursor-hover-target, [data-engine-interactive=\"true\"]";
+  "a, button, .project-card, .stat-card, .contact-link, .cursor-hover-target, [data-engine-interactive=\"true\"]";
 
 interface CursorTelemetryState {
   isHoveringEngine: boolean;

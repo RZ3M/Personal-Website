@@ -231,7 +231,7 @@ button:focus-visible,
    H-PATTERN SHIFTER
    ═══════════════════════════════════════════════════════ */
 .h-pattern-shifter {
-  width: 140px;
+  width: 118px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1151,164 +1151,6 @@ button:focus-visible,
 }
 
 /* ═══════════════════════════════════════════════════════
-   EDUCATION SECTION
-   ═══════════════════════════════════════════════════════ */
-.education-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.edu-card {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 36px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s;
-}
-
-.edu-card:hover {
-  border-color: rgba(230,57,70,0.2);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-}
-
-.edu-card .year-badge {
-  font-family: var(--font-display);
-  font-size: 48px;
-  font-weight: 900;
-  color: rgba(230,57,70,0.08);
-  position: absolute;
-  right: 20px;
-  top: 16px;
-}
-
-.edu-school {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-}
-
-.edu-degree {
-  font-size: 15px;
-  color: var(--blue);
-  margin-bottom: 4px;
-}
-
-.edu-gpa {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-dim);
-}
-
-.edu-gpa .gpa-value {
-  color: var(--green);
-  font-weight: bold;
-}
-
-/* ═══════════════════════════════════════════════════════
-   PASSIONS SECTION (3D objects + visual showcase)
-   ═══════════════════════════════════════════════════════ */
-.passions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.passion-item {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 32px 24px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: none;
-}
-
-.passion-item:hover {
-  transform: translateY(-8px) scale(1.02);
-  border-color: rgba(230,57,70,0.3);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.3);
-}
-
-.passion-icon {
-  font-size: 42px;
-  margin-bottom: 16px;
-  display: block;
-  transition: transform 0.5s;
-}
-
-.passion-item:hover .passion-icon {
-  transform: scale(1.15) rotate(-5deg);
-}
-
-.passion-title {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.passion-desc {
-  font-size: 13px;
-  color: var(--text-dim);
-  line-height: 1.5;
-}
-
-/* 3D Model Viewer */
-.model-viewer {
-  perspective: 600px;
-  width: 80px; height: 80px;
-  margin: 0 auto 16px;
-}
-
-.model-3d {
-  width: 100%; height: 100%;
-  transform-style: preserve-3d;
-  animation: modelSpin 8s linear infinite;
-}
-
-.model-3d.paused {
-  animation-play-state: paused;
-}
-
-.model-face {
-  position: absolute;
-  width: 60px; height: 60px;
-  left: 10px; top: 10px;
-  border: 1.5px solid var(--red);
-  background: rgba(230,57,70,0.05);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-}
-
-.model-face:nth-child(1) { transform: rotateY(0deg) translateZ(30px); }
-.model-face:nth-child(2) { transform: rotateY(90deg) translateZ(30px); }
-.model-face:nth-child(3) { transform: rotateY(180deg) translateZ(30px); }
-.model-face:nth-child(4) { transform: rotateY(270deg) translateZ(30px); }
-.model-face:nth-child(5) { transform: rotateX(90deg) translateZ(30px); }
-.model-face:nth-child(6) { transform: rotateX(-90deg) translateZ(30px); }
-
-@keyframes modelSpin {
-  from { transform: rotateX(15deg) rotateY(0deg); }
-  to { transform: rotateX(15deg) rotateY(360deg); }
-}
-
-/* ═══════════════════════════════════════════════════════
    CONTACT SECTION
    ═══════════════════════════════════════════════════════ */
 .contact-section {
@@ -1393,10 +1235,9 @@ button:focus-visible,
   .section { padding: 100px 28px 60px; }
   .about-content { grid-template-columns: 1fr; }
   .skills-dashboard { grid-template-columns: 1fr; }
-  .education-grid { grid-template-columns: 1fr; }
   .projects-grid { grid-template-columns: 1fr; }
   .right-nav-column { right: 8px; }
-  .h-pattern-shifter { width: 115px; }
+  .h-pattern-shifter { width: 98px; }
   .mini-engine-wrapper { width: 118px; height: 118px; }
   .h-gate-indicator .gear-display { font-size: 22px; }
   .h-gate-knob { width: 24px; height: 24px; margin-left: -12px; margin-top: -12px; }
@@ -1455,7 +1296,6 @@ button:focus-visible,
   .h-pattern-shifter { width: auto; }
   .mini-engine-wrapper { display: none; }
   .contact-links { flex-direction: column; align-items: center; }
-  .passions-grid { grid-template-columns: 1fr 1fr; }
   .skill-gauge-label { min-width: 70px; font-size: 10px; }
 }
 

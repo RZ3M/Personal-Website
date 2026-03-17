@@ -5,8 +5,6 @@ import {
   BriefcaseBusiness,
   CodeXml,
   FolderCode,
-  GraduationCap,
-  Heart,
   House,
   Mail,
   UserRound,
@@ -22,34 +20,33 @@ interface HPatternShifterProps {
 }
 
 // Graph model:
-//  G1      G3      G5      G7       (top row)
-//   |       |       |       |
-//  R0------R1------R2------R3       (middle rail)
-//   |       |       |       |
-//  G2      G4      G6      G8       (bottom row)
+//  G1      G3      G5       (top row)
+//   |       |       |
+//  R0------R1------R2       (middle rail)
+//   |       |       |
+//  G2      G4      G6       (bottom row)
 
 type NodeId =
-  | "G1" | "G2" | "G3" | "G4" | "G5" | "G6" | "G7" | "G8"
-  | "R0" | "R1" | "R2" | "R3";
+  | "G1" | "G2" | "G3" | "G4" | "G5" | "G6"
+  | "R0" | "R1" | "R2";
 
-const SVG_W = 160;
+const SVG_W = 124;
 const SVG_H = 250;
 
-// Columns x=26,62,98,134 (36px apart). Top y=65, rail y=125, bottom y=185.
+// Columns x=24,62,100. Top y=65, rail y=125, bottom y=185.
 // ~60px headroom above/below gear positions for icons.
 const SVG_POSITIONS: Record<NodeId, { x: number; y: number }> = {
-  G1: { x: 26,  y: 65  }, G2: { x: 26,  y: 185 },
+  G1: { x: 24,  y: 65  }, G2: { x: 24,  y: 185 },
   G3: { x: 62,  y: 65  }, G4: { x: 62,  y: 185 },
-  G5: { x: 98,  y: 65  }, G6: { x: 98,  y: 185 },
-  G7: { x: 134, y: 65  }, G8: { x: 134, y: 185 },
-  R0: { x: 26,  y: 125 }, R1: { x: 62,  y: 125 },
-  R2: { x: 98,  y: 125 }, R3: { x: 134, y: 125 },
+  G5: { x: 100, y: 65  }, G6: { x: 100, y: 185 },
+  R0: { x: 24,  y: 125 }, R1: { x: 62,  y: 125 },
+  R2: { x: 100, y: 125 },
 };
 
-// Groove drawn as 4 continuous vertical columns + 1 horizontal rail.
+// Groove drawn as 3 continuous vertical columns + 1 horizontal rail.
 // No endpoints at rail nodes → no round-cap bumps at T-junctions.
 // The feMorphology "close" filter rounds the concave inside corners.
-const COL_XS = [26, 62, 98, 134];
+const COL_XS = [24, 62, 100];
 const GEAR_TOP_Y = 65;
 const GEAR_BOT_Y = 185;
 const RAIL_Y = 125;
@@ -65,9 +62,7 @@ const GEAR_ICONS: Record<number, LucideIcon> = {
   3: BriefcaseBusiness,
   4: FolderCode,
   5: CodeXml,
-  6: GraduationCap,
-  7: Heart,
-  8: Mail,
+  6: Mail,
 };
 
 interface GrooveRect {
@@ -91,7 +86,7 @@ function createGrooveRects(width: number): GrooveRect[] {
     {
       x: COL_XS[0] - half,
       y: RAIL_Y - half,
-      width: COL_XS[3] - COL_XS[0] + width,
+      width: COL_XS[2] - COL_XS[0] + width,
       height: width,
       rx: Math.min(GROOVE_RADIUS, half),
     },
@@ -110,16 +105,14 @@ const NODES: GraphNode[] = [
   { id: "G1", gear: 1 }, { id: "G2", gear: 2 },
   { id: "G3", gear: 3 }, { id: "G4", gear: 4 },
   { id: "G5", gear: 5 }, { id: "G6", gear: 6 },
-  { id: "G7", gear: 7 }, { id: "G8", gear: 8 },
-  { id: "R0" }, { id: "R1" }, { id: "R2" }, { id: "R3" },
+  { id: "R0" }, { id: "R1" }, { id: "R2" },
 ];
 
 const EDGES: [NodeId, NodeId][] = [
   ["G1", "R0"], ["R0", "G2"],
   ["G3", "R1"], ["R1", "G4"],
   ["G5", "R2"], ["R2", "G6"],
-  ["G7", "R3"], ["R3", "G8"],
-  ["R0", "R1"], ["R1", "R2"], ["R2", "R3"],
+  ["R0", "R1"], ["R1", "R2"],
 ];
 
 const nodeMap = new Map<NodeId, GraphNode>();
@@ -443,8 +436,8 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
           {/*
             Section icons — rendered LAST so they're on top of the groove.
             Icons act as click targets (no gear circles).
-            Top-row gears (1,3,5,7): icon 40px above gear center.
-            Bottom-row gears (2,4,6,8): icon 40px below gear center.
+            Top-row gears (1,3,5): icon 40px above gear center.
+            Bottom-row gears (2,4,6): icon 40px below gear center.
           */}
           {NODES.filter(n => n.gear !== undefined).map((node) => {
             const gear = node.gear!;
