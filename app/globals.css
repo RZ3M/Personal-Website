@@ -326,7 +326,7 @@ button:focus-visible,
 .telemetry-bar .telemetry-chip-icon {
   width: 13px;
   height: 13px;
-  color: var(--blue);
+  color: rgba(230,57,70,0.78);
   stroke-width: 2;
 }
 
@@ -347,10 +347,10 @@ button:focus-visible,
 }
 
 .telemetry-bar .throttle-bar.active {
-  background: linear-gradient(180deg, rgba(0,180,216,0.95) 0%, rgba(230,57,70,0.95) 100%);
+  background: linear-gradient(180deg, rgba(56,224,170,0.95) 0%, rgba(6,214,160,0.95) 100%);
   box-shadow:
-    0 0 10px rgba(230,57,70,0.18),
-    0 0 14px rgba(0,180,216,0.1);
+    0 0 10px rgba(6,214,160,0.22),
+    0 0 16px rgba(6,214,160,0.14);
 }
 
 .telemetry-bar .throttle-chip {
