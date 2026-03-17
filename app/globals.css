@@ -1276,12 +1276,92 @@ button:focus-visible,
   .section { padding: 80px 20px 50px; }
   .hero-title { letter-spacing: 4px; }
   .rotary-engine-container { width: 280px; height: 280px; }
+  .telemetry-bar {
+    height: 34px;
+    padding: 0 10px;
+    font-size: 9px;
+  }
+  .telemetry-bar .left-data span { margin-right: 10px; }
+  .telemetry-bar .rpm-readout {
+    font-size: 12px;
+    letter-spacing: 1.2px;
+  }
+  .telemetry-bar .right-data { gap: 10px; }
+  .telemetry-bar .telemetry-chip {
+    gap: 5px;
+    min-height: 18px;
+  }
+  .telemetry-bar .telemetry-chip-label {
+    min-width: 20px;
+    letter-spacing: 1px;
+  }
+  .telemetry-bar .telemetry-chip-value {
+    min-width: 30px;
+    letter-spacing: 1px;
+  }
+  .telemetry-bar .throttle-chip { width: 68px; }
+  .telemetry-bar .oil-chip { width: 78px; }
+  .telemetry-bar .throttle-hud {
+    width: 33px;
+    gap: 2px;
+    height: 10px;
+  }
+  .telemetry-bar .throttle-bar {
+    width: 3px;
+    height: 8px;
+  }
+  .telemetry-bar .telemetry-chip-icon {
+    width: 12px;
+    height: 12px;
+  }
   .h-gate-plate { display: none; }
   .h-pattern-shifter { width: auto; }
   .mini-engine-wrapper { display: none; }
   .contact-links { flex-direction: column; align-items: center; }
   .passions-grid { grid-template-columns: 1fr 1fr; }
   .skill-gauge-label { min-width: 70px; font-size: 10px; }
+}
+
+@media (max-width: 430px) {
+  .telemetry-bar {
+    grid-template-columns: auto 1fr;
+    padding: 0 8px;
+    position: fixed;
+  }
+  .telemetry-bar .left-data span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 0;
+  }
+  .telemetry-bar .status-dot { margin-right: 0; }
+  .telemetry-bar .rpm-readout {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 11px;
+    letter-spacing: 1px;
+    z-index: 1;
+  }
+  .telemetry-bar .right-data {
+    justify-self: end;
+    gap: 8px;
+  }
+  .telemetry-bar .telemetry-chip-label { display: none; }
+  .telemetry-bar .throttle-chip .telemetry-chip-label {
+    display: inline;
+    min-width: 18px;
+    letter-spacing: 0.8px;
+  }
+  .telemetry-bar .throttle-chip { width: 48px; }
+  .telemetry-bar .oil-chip { width: auto; }
+  .telemetry-bar .telemetry-chip {
+    gap: 4px;
+  }
+  .telemetry-bar .telemetry-chip-value {
+    min-width: 28px;
+  }
 }
 
 @media (pointer: coarse) {

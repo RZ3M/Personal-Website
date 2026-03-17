@@ -22,7 +22,7 @@ export const TelemetryBar = React.memo(function TelemetryBar({
       <div className="left-data">
         <span>
           <span className="status-dot" />
-          SYSTEMS ONLINE
+          <span className="status-text">SYSTEMS ONLINE</span>
         </span>
       </div>
       <div
