@@ -23,6 +23,24 @@ There is no formatter or linter configured yet, so keep edits consistent with th
 
 For UI work, maintain the existing terminology and metaphors: telemetry, RPM, lap times, pit board, and rotary engine references. New copy, sections, or interactions should fit the portfolio's personal-brand tone and not conflict with the racing theme. The telemetry bar, RPM simulation, rotary engine animation, and H-pattern shifter are core product elements; treat them as part of the experience architecture rather than optional decoration. Icons use [`lucide-react`](./package.json) and new iconography should stay visually consistent with that set unless there is a strong reason to diverge.
 
+## Engine Interaction Notes
+The RPM system in [`lib/rpm-engine.ts`](./lib/rpm-engine.ts) is no longer a simple decorative pulse. It now models a virtual RX-8-inspired 8-speed ratio ladder across the portfolio's 8 shifter positions. Gear changes should be computed from ratio changes, not fixed RPM add/subtract effects. Large downshifts are expected to create dramatic RPM jumps, and extreme jumps such as high-RPM `G8 -> G1` may push the engine straight into the limiter.
+
+Direct engine interaction is the primary throttle input. The hero engine and mini engine both support press-and-hold throttle through [`hooks/use-rotary-animation.ts`](./hooks/use-rotary-animation.ts), and this interaction should remain the most reliable way to drive the engine to redline. Ambient influences such as scroll, pointer movement, clicks, and shifter drag are secondary flavor inputs; they can move RPM, but they should not overpower held throttle or create unrealistic sustained limiter behavior by themselves.
+
+Limiter behavior is intentional and should be preserved. The desired feel is true redline contact followed by a fuel-cut bounce, with telemetry shake appearing while limiter behavior is active. Do not reintroduce soft ceilings that flatten RPM below redline, and do not replace ratio-based gear transitions with canned blips or fixed drops.
+
+The engine also has a subtle RPM-driven rumble layer applied in [`hooks/use-rotary-animation.ts`](./hooks/use-rotary-animation.ts) and rendered through the shared engine shell in the hero and mini engine containers. Keep this restrained and smooth. The rotary should feel mechanically alive, but not rough like a lumpy piston engine.
+
+## Cursor Interaction Notes
+The custom cursor is part of the engine-control UX, not just decoration. Its behavior is currently split between [`hooks/use-cursor-system.ts`](./hooks/use-cursor-system.ts) and [`app/globals.css`](./app/globals.css).
+
+In [`hooks/use-cursor-system.ts`](./hooks/use-cursor-system.ts), the red cursor dot is positioned at `mouseX - 4` / `mouseY - 4`, while the ring is positioned at `ringX - 18` / `ringY - 18`. Hover state is toggled by adding or removing the `hover` class when the pointer moves over clickable targets or engine-interactive targets. Engine telemetry is passed into the ring through `data-engine-hover`, `data-throttle-active`, and the `--throttle-level` CSS variable.
+
+In [`app/globals.css`](./app/globals.css), the default ring is `36px`, clickable hover uses `.cursor-ring.hover` at `56px` with a blue border, and engine hover uses `data-engine-hover="true"` at `62px` with a blue glow. Throttle-active state scales the ring and adds green glow. The throttle ring fill is rendered with a conic gradient driven by `--throttle-level`, and its current fill origin is `from -45deg`.
+
+On mobile, the custom cursor is hidden through the responsive rule that disables `.cursor-dot`, `.cursor-ring`, and `.cursor-trail`.
+
 ## Testing Guidelines
 There is no dedicated test framework configured in this repo today. Minimum validation for any change is:
 - `npm run typecheck`
