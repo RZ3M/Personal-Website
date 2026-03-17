@@ -22,41 +22,6 @@ const HERO_TAGLINE =
 const HOVER_SELECTOR =
   "a, button, .project-card, .passion-item, .stat-card, .edu-card, .contact-link, .cursor-hover-target";
 
-function seededValue(seed: number, index: number) {
-  const raw = Math.sin((seed + 1) * 97.13 + index * 12.9898) * 43758.5453;
-  return raw - Math.floor(raw);
-}
-
-function formatCssNumber(value: number, decimals: number) {
-  return Number(value.toFixed(decimals)).toString();
-}
-
-const waveBars = Array.from({ length: 7 }, (_, waveIndex) =>
-  Array.from({ length: 80 }, (_, barIndex) => ({
-    height: formatCssNumber(seededValue(waveIndex + 1, barIndex) * 30 + 5, 4),
-    delay: formatCssNumber(barIndex * 0.03, 2),
-  })),
-);
-
-function WaveDivider({ index }: { index: number }) {
-  const bars = waveBars[index - 1];
-
-  return (
-    <div className="wave-divider" id={`wave${index}`}>
-      {bars.map((bar, barIndex) => (
-        <div
-          className="wave-bar"
-          key={barIndex}
-          style={{
-            height: `${bar.height}px`,
-            animationDelay: `${bar.delay}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 function renderExperiencePart(part: ExperiencePart, index: number) {
   if (part.type === "tag") {
     return (
@@ -465,7 +430,6 @@ export function PortfolioApp() {
       document.querySelectorAll<HTMLElement>(".timeline-entry"),
     );
     const sections = Array.from(document.querySelectorAll<HTMLElement>(".section"));
-    const waves = Array.from(document.querySelectorAll<HTMLElement>(".wave-divider"));
     const gauges = Array.from(
       document.querySelectorAll<HTMLElement>(".skill-gauge-fill"),
     );
@@ -492,15 +456,6 @@ export function PortfolioApp() {
       { threshold: 0.25, rootMargin: "0px 0px -15% 0px" },
     );
 
-    const waveObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          entry.target.classList.toggle("active", entry.isIntersecting);
-        });
-      },
-      { threshold: 0.05 },
-    );
-
     const gaugeObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -517,13 +472,11 @@ export function PortfolioApp() {
       revealObserver.observe(element),
     );
     sections.forEach((section) => sectionObserver.observe(section));
-    waves.forEach((wave) => waveObserver.observe(wave));
     gauges.forEach((gauge) => gaugeObserver.observe(gauge));
 
     return () => {
       revealObserver.disconnect();
       sectionObserver.disconnect();
-      waveObserver.disconnect();
       gaugeObserver.disconnect();
     };
   }, []);
@@ -711,7 +664,6 @@ export function PortfolioApp() {
             <span className="hero-tagline-cursor" ref={taglineCursorRef} aria-hidden="true" />
           </p>
         </section>
-        <WaveDivider index={1} />
 
         <section className="section" id="about">
           <div className="section-header reveal">ABOUT</div>
@@ -758,7 +710,6 @@ export function PortfolioApp() {
             </div>
           </div>
         </section>
-        <WaveDivider index={2} />
 
         <section className="section" id="experience">
           <div className="section-header reveal">EXPERIENCE</div>
@@ -787,7 +738,6 @@ export function PortfolioApp() {
             ))}
           </div>
         </section>
-        <WaveDivider index={3} />
 
         <section className="section" id="projects">
           <div className="section-header reveal">PROJECTS</div>
@@ -832,7 +782,6 @@ export function PortfolioApp() {
             ))}
           </div>
         </section>
-        <WaveDivider index={4} />
 
         <section className="section" id="skills">
           <div className="section-header reveal">SKILLS</div>
@@ -866,7 +815,6 @@ export function PortfolioApp() {
             ))}
           </div>
         </section>
-        <WaveDivider index={5} />
 
         <section className="section" id="education">
           <div className="section-header reveal">EDUCATION</div>
@@ -897,7 +845,6 @@ export function PortfolioApp() {
             ))}
           </div>
         </section>
-        <WaveDivider index={6} />
 
         <section className="section" id="passions">
           <div className="section-header reveal">PASSIONS</div>
@@ -931,7 +878,6 @@ export function PortfolioApp() {
             ))}
           </div>
         </section>
-        <WaveDivider index={7} />
 
         <section className="section contact-section" id="contact">
           <div className="section-header reveal">CONTACT</div>
