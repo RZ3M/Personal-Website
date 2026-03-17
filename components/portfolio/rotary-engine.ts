@@ -154,6 +154,19 @@ export function createRotaryEngineRenderer(
       ctx.lineWidth = lw(6);
       ctx.stroke();
 
+      // Outer shell outline — slight offset to give the housing another perimeter layer
+      ctx.beginPath();
+      housingPoints.forEach((point, index) => {
+        const offsetX = canvasCenter + (point.x - canvasCenter) * 1.06;
+        const offsetY = canvasCenter + (point.y - canvasCenter) * 1.06;
+        if (index === 0) ctx.moveTo(offsetX, offsetY);
+        else ctx.lineTo(offsetX, offsetY);
+      });
+      ctx.closePath();
+      ctx.strokeStyle = "rgba(230,57,70,0.22)";
+      ctx.lineWidth = lw(1.1);
+      ctx.stroke();
+
       // Rotor
       const rcX = canvasCenter + eccentricity * Math.cos(shaftAngle);
       const rcY = canvasCenter + eccentricity * Math.sin(shaftAngle);
