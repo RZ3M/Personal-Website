@@ -1,12 +1,12 @@
 # Repository Guidelines
 
 ## Project Purpose & Design Intent
-This repository powers Jack Ma's personal portfolio website. The site is not a generic template; it presents professional experience, projects, education, and contact information through a motorsport-inspired visual system. The core theme combines racing telemetry, tachometers, pit-board language, and rotary/Wankel engine references. Interactive details such as the rotary engine canvas, RPM readouts, wave dividers, and performance-dashboard styling are part of the product, not decoration.
+This repository powers Jack Ma's personal portfolio website. The site is not a generic template; it presents professional experience, projects, education, and contact information through a motorsport-inspired visual system. The core theme combines racing telemetry, tachometers, pit-board language, and rotary/Wankel engine references. Interactive details such as the rotary engine canvas, RPM readouts, telemetry strip, H-pattern shifter navigation, and performance-dashboard styling are part of the product, not decoration.
 
 When contributing, preserve that identity. Changes should feel precise, mechanical, high-performance, and intentional. Do not replace the current aesthetic with a neutral SaaS look or simplify away theme-specific elements unless explicitly asked.
 
 ## Project Structure & Module Organization
-This repository is a small Next.js App Router site for a personal portfolio. Primary app entry points live in [`app/`](./app): [`layout.tsx`](./app/layout.tsx), [`page.tsx`](./app/page.tsx), and global styling in [`globals.css`](./app/globals.css). Interactive UI logic is centralized in [`components/portfolio/PortfolioApp.tsx`](./components/portfolio/PortfolioApp.tsx). Portfolio content is stored separately in [`lib/portfolio-data.ts`](./lib/portfolio-data.ts) so text and metrics can be updated without changing rendering logic. Static assets belong in [`public/`](./public). The legacy one-file reference version remains in [`index.html`](./index.html).
+This repository is a small Next.js App Router site for a personal portfolio. Primary app entry points live in [`app/`](./app): [`layout.tsx`](./app/layout.tsx), [`page.tsx`](./app/page.tsx), global styling in [`globals.css`](./app/globals.css), and the app icon in [`icon.svg`](./app/icon.svg). [`components/portfolio/PortfolioApp.tsx`](./components/portfolio/PortfolioApp.tsx) is the top-level composition shell, while section rendering lives in [`components/portfolio/sections/`](./components/portfolio/sections/). Shared interactive systems are split into hooks under [`hooks/`](./hooks), including cursor, particle, scroll/RPM, and typewriter behavior. Rotary-specific rendering lives in [`components/portfolio/rotary-engine.ts`](./components/portfolio/rotary-engine.ts), and the RPM model lives in [`lib/rpm-engine.ts`](./lib/rpm-engine.ts). Portfolio content is stored separately in [`lib/portfolio-data.ts`](./lib/portfolio-data.ts) so text and metrics can be updated without changing rendering logic. Static assets belong in [`public/`](./public). The legacy reference version remains in [`legacy-index.html`](./legacy-index.html).
 
 ## Build, Test, and Development Commands
 - `npm run dev`: start the local Next.js dev server.
@@ -21,7 +21,7 @@ Use TypeScript with strict typing and 2-space indentation. Prefer React function
 
 There is no formatter or linter configured yet, so keep edits consistent with the surrounding code and avoid unnecessary rewrites.
 
-For UI work, maintain the existing terminology and metaphors: telemetry, RPM, lap times, pit board, and rotary engine references. New copy, sections, or interactions should fit the portfolio's personal-brand tone and not conflict with the racing theme.
+For UI work, maintain the existing terminology and metaphors: telemetry, RPM, lap times, pit board, and rotary engine references. New copy, sections, or interactions should fit the portfolio's personal-brand tone and not conflict with the racing theme. The telemetry bar, RPM simulation, rotary engine animation, and H-pattern shifter are core product elements; treat them as part of the experience architecture rather than optional decoration. Icons use [`lucide-react`](./package.json) and new iconography should stay visually consistent with that set unless there is a strong reason to diverge.
 
 ## Testing Guidelines
 There is no dedicated test framework configured in this repo today. Minimum validation for any change is:
