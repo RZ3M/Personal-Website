@@ -396,6 +396,27 @@ button:focus-visible,
   }
 }
 
+@keyframes telemetryRedlineShakeMobile {
+  0% {
+    transform: translate(-50%, -50%) scale(1.01) skewX(0deg);
+  }
+  20% {
+    transform: translate(calc(-50% - 0.5px), calc(-50% - 0.5px)) scale(1.04) skewX(-1deg);
+  }
+  40% {
+    transform: translate(calc(-50% + 1px), calc(-50% + 0.5px)) scale(1.02) skewX(1deg);
+  }
+  60% {
+    transform: translate(calc(-50% - 1px), calc(-50% + 0.5px)) scale(1.05) skewX(-0.8deg);
+  }
+  80% {
+    transform: translate(calc(-50% + 1px), calc(-50% - 0.5px)) scale(1.03) skewX(0.8deg);
+  }
+  100% {
+    transform: translate(calc(-50% - 0.5px), -50%) scale(1.04) skewX(-1deg);
+  }
+}
+
 /* ═══════════════════════════════════════════════════════
    SECTION SHARED STYLES
    ═══════════════════════════════════════════════════════ */
@@ -1343,6 +1364,9 @@ button:focus-visible,
     font-size: 11px;
     letter-spacing: 1px;
     z-index: 1;
+  }
+  .telemetry-bar .rpm-readout.redline {
+    animation-name: telemetryRedlineShakeMobile;
   }
   .telemetry-bar .right-data {
     justify-self: end;
