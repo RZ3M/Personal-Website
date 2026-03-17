@@ -12,7 +12,7 @@ import {
   UserRound,
   type LucideIcon,
 } from "lucide-react";
-import { sectionNav } from "../../lib/portfolio-data";
+import { sectionNav } from "@/lib/portfolio-data";
 
 interface HPatternShifterProps {
   activeSectionIndex: number;
@@ -170,9 +170,6 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
   const knobXRef = useRef(SVG_POSITIONS.G1.x);
   const knobYRef = useRef(SVG_POSITIONS.G1.y);
 
-  useEffect(() => { isDraggingRef.current = isDragging; }, [isDragging]);
-  useEffect(() => { currentGearRef.current = currentGear; }, [currentGear]);
-
   const findNearestNode = useCallback((x: number, y: number): NodeId => {
     let best: NodeId = "R0";
     let bestDist = Infinity;
@@ -229,6 +226,7 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
         nearestNodeRef.current = toNode;
         const gearNode = nodeMap.get(toNode);
         if (gearNode?.gear) {
+          currentGearRef.current = gearNode.gear;
           setCurrentGear(gearNode.gear);
           lastSyncedGearRef.current = gearNode.gear;
         }
@@ -255,6 +253,7 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
       const nearest = nearestNodeRef.current;
       const nearestGear = nodeMap.get(nearest);
       if (nearestGear?.gear && segmentProgress > 0.8) {
+        currentGearRef.current = nearestGear.gear;
         setCurrentGear(nearestGear.gear);
       }
 
@@ -343,7 +342,7 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
       const dy = pos.y - bestY;
       if (Math.sqrt(dx * dx + dy * dy) < snapThreshold) {
         nearestNodeRef.current = node.id;
-        if (node.gear) setCurrentGear(node.gear);
+        if (node.gear) { currentGearRef.current = node.gear; setCurrentGear(node.gear); }
         break;
       }
     }

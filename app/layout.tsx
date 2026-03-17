@@ -1,6 +1,28 @@
 import type { Metadata } from "next";
+import { Orbitron, Rajdhani, Share_Tech_Mono } from "next/font/google";
 
 import "./globals.css";
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const shareTechMono = Share_Tech_Mono({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Jack Ma — Software Engineer | Creator | Builder",
@@ -14,15 +36,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html
+      lang="en"
+      className={`${orbitron.variable} ${rajdhani.variable} ${shareTechMono.variable}`}
+    >
       <body>{children}</body>
     </html>
   );
