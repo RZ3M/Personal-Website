@@ -18,7 +18,7 @@ import { HPatternShifter } from "./HPatternShifter";
 const HERO_TAGLINE =
   "Engineering elegant systems. Designing real things. Chasing the redline.";
 const HOVER_SELECTOR =
-  "a, button, .project-card, .passion-item, .stat-card, .edu-card, .contact-link";
+  "a, button, .project-card, .passion-item, .stat-card, .edu-card, .contact-link, .cursor-hover-target";
 
 function seededValue(seed: number, index: number) {
   const raw = Math.sin((seed + 1) * 97.13 + index * 12.9898) * 43758.5453;
@@ -160,6 +160,20 @@ export function PortfolioApp() {
       }
     };
 
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (target?.closest(HOVER_SELECTOR)) {
+        ring.classList.add("hover");
+      }
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (!target?.closest(HOVER_SELECTOR)) {
+        ring.classList.remove("hover");
+      }
+    };
+
     const animateCursor = () => {
       ringX += (mouseX - ringX) * 0.12;
       ringY += (mouseY - ringY) * 0.12;
@@ -192,6 +206,9 @@ export function PortfolioApp() {
     document.addEventListener("pointermove", handleMouseMove as EventListener);
     document.addEventListener("mouseover", handleMouseOver);
     document.addEventListener("mouseout", handleMouseOut);
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("pointerup", handlePointerUp);
+    document.addEventListener("pointercancel", handlePointerUp);
     frameId = window.requestAnimationFrame(animateCursor);
 
     return () => {
@@ -200,6 +217,9 @@ export function PortfolioApp() {
       document.removeEventListener("pointermove", handleMouseMove as EventListener);
       document.removeEventListener("mouseover", handleMouseOver);
       document.removeEventListener("mouseout", handleMouseOut);
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("pointerup", handlePointerUp);
+      document.removeEventListener("pointercancel", handlePointerUp);
     };
   }, []);
 

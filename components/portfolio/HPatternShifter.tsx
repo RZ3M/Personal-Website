@@ -458,6 +458,7 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
 
             return (
               <g key={`icon-${node.id}`}
+                className="cursor-hover-target"
                 onClick={() => handleGearClick(gear)}
                 style={{ cursor: "none" }}>
                 {/* Shared icon box keeps every mark on the same visual rhythm. */}
@@ -486,7 +487,7 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, className }:
 
         {/* Draggable knob — positioned absolutely over SVG */}
         <div
-          className="h-gate-knob"
+          className="h-gate-knob cursor-hover-target"
           data-dragging={isDragging}
           style={{ left: `${knobLeft}%`, top: `${knobTop}%` }}
           onPointerDown={handlePointerDown}
