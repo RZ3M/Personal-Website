@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { sectionNav } from "@/lib/portfolio-data";
+import { useTheme } from "@/hooks/use-theme";
 
 interface HPatternShifterProps {
   activeSectionIndex: number;
@@ -52,7 +53,6 @@ const GEAR_BOT_Y = 185;
 const RAIL_Y = 125;
 const GROOVE_OUTER_WIDTH = 16;
 const GROOVE_INNER_WIDTH = 10;
-const GROOVE_RADIUS = 7;
 const ICON_SIZE = 24;
 const ICON_OFFSET = 40;
 
@@ -64,37 +64,6 @@ const GEAR_ICONS: Record<number, LucideIcon> = {
   5: CodeXml,
   6: Mail,
 };
-
-interface GrooveRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rx: number;
-}
-
-function createGrooveRects(width: number): GrooveRect[] {
-  const half = width / 2;
-  return [
-    ...COL_XS.map((cx) => ({
-      x: cx - half,
-      y: GEAR_TOP_Y - half,
-      width,
-      height: GEAR_BOT_Y - GEAR_TOP_Y + width,
-      rx: Math.min(GROOVE_RADIUS, half),
-    })),
-    {
-      x: COL_XS[0] - half,
-      y: RAIL_Y - half,
-      width: COL_XS[2] - COL_XS[0] + width,
-      height: width,
-      rx: Math.min(GROOVE_RADIUS, half),
-    },
-  ];
-}
-
-const OUTER_GROOVE_RECTS = createGrooveRects(GROOVE_OUTER_WIDTH);
-const INNER_GROOVE_RECTS = createGrooveRects(GROOVE_INNER_WIDTH);
 
 interface GraphNode {
   id: NodeId;
@@ -148,6 +117,8 @@ function gearToNodeId(gear: number): NodeId {
 }
 
 export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, className }: HPatternShifterProps) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const svgRef = useRef<SVGSVGElement>(null);
   const [currentGear, setCurrentGear] = useState(1);
   const [knobX, setKnobX] = useState(SVG_POSITIONS.G1.x);
@@ -378,18 +349,21 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
         >
           <defs>
             <linearGradient id="shifterPlateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#1a1a24" />
-              <stop offset="35%" stopColor="#252535" />
-              <stop offset="65%" stopColor="#1e1e2e" />
-              <stop offset="100%" stopColor="#141420" />
-            </linearGradient>
-            <linearGradient id="grooveShellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#000000" stopOpacity="0.94" />
-              <stop offset="100%" stopColor="#000000" stopOpacity="0.78" />
-            </linearGradient>
-            <linearGradient id="grooveFloorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#07070d" />
-              <stop offset="100%" stopColor="#020205" />
+              {isLight ? (
+                <>
+                  <stop offset="0%"   stopColor="#d4d4e2" />
+                  <stop offset="35%"  stopColor="#e2e2ee" />
+                  <stop offset="65%"  stopColor="#ccccdc" />
+                  <stop offset="100%" stopColor="#c0c0d0" />
+                </>
+              ) : (
+                <>
+                  <stop offset="0%" stopColor="#1c1c28" />
+                  <stop offset="35%" stopColor="#2a2a3c" />
+                  <stop offset="65%" stopColor="#222232" />
+                  <stop offset="100%" stopColor="#161622" />
+                </>
+              )}
             </linearGradient>
             <filter id="shifterGlow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="3" result="blur" />
@@ -403,35 +377,26 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
           {/* Plate background */}
           <rect x="0" y="0" width={SVG_W} height={SVG_H} rx="12" fill="url(#shifterPlateGrad)" />
           <rect x="0.75" y="0.75" width={SVG_W - 1.5} height={SVG_H - 1.5} rx="11.5"
-            fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5" />
+            fill="none"
+            stroke={isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.05)"}
+            strokeWidth="1.5" />
 
-          {/* Groove shell and floor are filled rounded slots, closer to a machined gate plate. */}
-          <g>
-            {OUTER_GROOVE_RECTS.map((rect, index) => (
-              <rect
-                key={`groove-outer-${index}`}
-                x={rect.x}
-                y={rect.y}
-                width={rect.width}
-                height={rect.height}
-                rx={rect.rx}
-                fill="url(#grooveShellGrad)"
-              />
-            ))}
-          </g>
-          <g>
-            {INNER_GROOVE_RECTS.map((rect, index) => (
-              <rect
-                key={`groove-inner-${index}`}
-                x={rect.x}
-                y={rect.y}
-                width={rect.width}
-                height={rect.height}
-                rx={rect.rx}
-                fill="url(#grooveFloorGrad)"
-              />
-            ))}
-          </g>
+          {/* Groove shell — outer stroke, rounded caps eliminate T-junction alpha overlap */}
+          <path
+            d={`M 24,${GEAR_TOP_Y} L 24,${GEAR_BOT_Y} M 62,${GEAR_TOP_Y} L 62,${GEAR_BOT_Y} M 100,${GEAR_TOP_Y} L 100,${GEAR_BOT_Y} M 24,${RAIL_Y} L 100,${RAIL_Y}`}
+            stroke={isLight ? "#252525" : "#080808"}
+            strokeWidth={GROOVE_OUTER_WIDTH}
+            strokeLinecap="round"
+            fill="none"
+          />
+          {/* Groove floor — inner stroke, darker */}
+          <path
+            d={`M 24,${GEAR_TOP_Y} L 24,${GEAR_BOT_Y} M 62,${GEAR_TOP_Y} L 62,${GEAR_BOT_Y} M 100,${GEAR_TOP_Y} L 100,${GEAR_BOT_Y} M 24,${RAIL_Y} L 100,${RAIL_Y}`}
+            stroke={isLight ? "#111111" : "#030303"}
+            strokeWidth={GROOVE_INNER_WIDTH}
+            strokeLinecap="round"
+            fill="none"
+          />
 
           {/*
             Section icons — rendered LAST so they're on top of the groove.
@@ -447,7 +412,9 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
             const isActive = gear === currentGear;
             const isTopRow = pos.y < RAIL_Y;
             const iconCY = isTopRow ? pos.y - ICON_OFFSET : pos.y + ICON_OFFSET;
-            const iconColor = isActive ? "#e63946" : "rgba(85,85,120,0.8)";
+            const iconColor = isActive
+              ? (isLight ? "#c8243b" : "#e63946")
+              : (isLight ? "rgba(80,80,100,0.7)" : "rgba(85,85,120,0.8)");
             const iconX = pos.x - ICON_SIZE / 2;
             const iconY = iconCY - ICON_SIZE / 2;
 

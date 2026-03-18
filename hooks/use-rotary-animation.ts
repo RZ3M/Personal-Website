@@ -9,8 +9,10 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
-import { createRotaryEngineRenderer } from "@/components/portfolio/rotary-engine";
+import { createRotaryEngineRenderer, drawPortLabels } from "@/components/portfolio/rotary-engine";
+import { getThemeColors } from "@/lib/theme-colors";
 import { createRpmEngine, rpmToRotationSpeed, type RpmEngine } from "@/lib/rpm-engine";
+import { useTheme } from "@/hooks/use-theme";
 
 type EngineSurface = "hero" | "mini";
 
@@ -32,7 +34,12 @@ interface EngineSurfaceBindings {
 const FULL_THROTTLE = 1;
 
 export function useRotaryAnimation(rpmEngineRef: { current: RpmEngine | null }) {
+  const { theme } = useTheme();
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
+
   const rotaryCanvasRef = useRef<HTMLCanvasElement>(null);
+  const rotaryLabelsCanvasRef = useRef<HTMLCanvasElement>(null);
   const miniCanvasRef = useRef<HTMLCanvasElement>(null);
   const heroVisibleRef = useRef(true);
   const hoverCountRef = useRef(0);
@@ -187,10 +194,16 @@ export function useRotaryAnimation(rpmEngineRef: { current: RpmEngine | null }) 
       const limiterActive = engine.isAtLimiter();
       shaftAngle += rpmToRotationSpeed(rpm);
 
+      const colors = getThemeColors(themeRef.current);
       if (heroVisibleRef.current) {
-        heroRenderer.draw(heroCtx, shaftAngle, { rpm });
+        heroRenderer.draw(heroCtx, shaftAngle, { rpm, colors, skipPortLabels: true });
+        const labelsCanvas = rotaryLabelsCanvasRef.current;
+        if (labelsCanvas) {
+          const labelsCtx = labelsCanvas.getContext("2d");
+          if (labelsCtx) drawPortLabels(labelsCtx, 1040, shaftAngle, { rpm, colors });
+        }
       } else {
-        miniRenderer.draw(miniCtx, shaftAngle, { skipLabels: true, compact: true, rpm });
+        miniRenderer.draw(miniCtx, shaftAngle, { skipLabels: true, compact: true, rpm, colors });
       }
 
       if (now - lastUiUpdateTime > 50) {
@@ -245,6 +258,7 @@ export function useRotaryAnimation(rpmEngineRef: { current: RpmEngine | null }) 
     miniEngineBindings,
     miniCanvasRef,
     rotaryCanvasRef,
+    rotaryLabelsCanvasRef,
     showThrottleHint,
   };
 }

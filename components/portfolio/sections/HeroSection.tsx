@@ -14,6 +14,7 @@ interface HeroSectionProps {
   };
   isThrottleActive: boolean;
   rotaryCanvasRef: React.Ref<HTMLCanvasElement>;
+  rotaryLabelsCanvasRef: React.Ref<HTMLCanvasElement>;
   showThrottleHint: boolean;
   taglineTextRef: React.Ref<HTMLSpanElement>;
   taglineCursorRef: React.Ref<HTMLSpanElement>;
@@ -24,6 +25,7 @@ export const HeroSection = React.memo(function HeroSection({
   heroEngineBindings,
   isThrottleActive,
   rotaryCanvasRef,
+  rotaryLabelsCanvasRef,
   showThrottleHint,
   taglineTextRef,
   taglineCursorRef,
@@ -45,6 +47,7 @@ export const HeroSection = React.memo(function HeroSection({
             HOLD TO REV
           </span>
         </div>
+        <canvas className="rotary-labels-canvas" ref={rotaryLabelsCanvasRef} width="1040" height="1040" />
       </div>
 
       <h1 className="hero-title">JACK MA</h1>

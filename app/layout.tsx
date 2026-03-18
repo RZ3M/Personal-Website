@@ -30,6 +30,8 @@ export const metadata: Metadata = {
     "Portfolio of Jack Ma — Software Engineer, 3D printing enthusiast, rotary engine lover, and creative builder.",
 };
 
+const themeInitScript = `(function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);return;}}catch(e){}if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches){document.documentElement.setAttribute('data-theme','light');}else{document.documentElement.setAttribute('data-theme','dark');}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,8 +40,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${orbitron.variable} ${rajdhani.variable} ${shareTechMono.variable}`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );

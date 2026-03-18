@@ -34,6 +34,7 @@ export function PortfolioApp() {
     miniCanvasRef,
     miniEngineBindings,
     rotaryCanvasRef,
+    rotaryLabelsCanvasRef,
     showThrottleHint,
   } = useRotaryAnimation(rpmEngineRef);
   const { dotRef, ringRef, trailRefs } = useCursorSystem(rpmEngineRef, cursorTelemetry);
@@ -103,6 +104,7 @@ export function PortfolioApp() {
           heroEngineBindings={heroEngineBindings}
           isThrottleActive={isThrottleActive}
           rotaryCanvasRef={rotaryCanvasRef}
+          rotaryLabelsCanvasRef={rotaryLabelsCanvasRef}
           showThrottleHint={showThrottleHint}
           taglineTextRef={taglineTextRef}
           taglineCursorRef={taglineCursorRef}
