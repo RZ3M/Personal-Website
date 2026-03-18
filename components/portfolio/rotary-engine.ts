@@ -3,6 +3,8 @@
 // profile once at the given resolution, then returns a draw() function.
 // The reference canvas size is 1040; everything scales linearly from there.
 
+import { DARK_COLORS, type ThemeColors } from "@/lib/theme-colors";
+
 const FALLBACK_IDLE_RPM = 750;
 const REDLINE_RPM = 9500;
 
@@ -10,8 +12,79 @@ export interface RotaryEngineRenderer {
   draw(
     ctx: CanvasRenderingContext2D,
     shaftAngle: number,
-    opts?: { skipLabels?: boolean; compact?: boolean; rpm?: number },
+    opts?: { skipLabels?: boolean; skipPortLabels?: boolean; compact?: boolean; rpm?: number; colors?: ThemeColors },
   ): void;
+}
+
+export function drawPortLabels(
+  ctx: CanvasRenderingContext2D,
+  canvasSize: number,
+  shaftAngle: number,
+  opts?: { rpm?: number; colors?: ThemeColors },
+): void {
+  const scale = canvasSize / 1040;
+  const canvasCenter = canvasSize / 2;
+  const generatingRadius = 150 * scale;
+  const eccentricity = 25 * scale;
+  const rpm = opts?.rpm ?? FALLBACK_IDLE_RPM;
+  const c = opts?.colors ?? DARK_COLORS;
+
+  const portDistance = generatingRadius + eccentricity + 36 * scale;
+  const cyclePhase = ((shaftAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+  const phaseWindow = (Math.PI * 2) / 3;
+  const normalizedRpm = Math.max(0, Math.min(1, rpm / REDLINE_RPM));
+  const pulseRadiusBoost = 2 + 8 * normalizedRpm;
+  const glowRadiusBoost = 6 + 18 * normalizedRpm;
+  const labelFontSize = Math.max(16 * scale, 18);
+  const ports = [
+    {
+      x: canvasCenter - portDistance * 0.85,
+      y: canvasCenter - portDistance * 0.5,
+      rgb: c.blue,
+      label: "INTAKE",
+      phaseOffset: 0,
+    },
+    {
+      x: canvasCenter + portDistance * 0.85,
+      y: canvasCenter,
+      rgb: c.green,
+      label: "SPARK",
+      phaseOffset: phaseWindow,
+    },
+    {
+      x: canvasCenter - portDistance * 0.85,
+      y: canvasCenter + portDistance * 0.5,
+      rgb: c.orange,
+      label: "EXHAUST",
+      phaseOffset: phaseWindow * 2,
+    },
+  ];
+
+  ctx.clearRect(0, 0, canvasSize, canvasSize);
+
+  ports.forEach((port) => {
+    const phaseDelta = Math.abs(
+      ((((cyclePhase - port.phaseOffset) % (Math.PI * 2)) + Math.PI * 3) % (Math.PI * 2)) -
+        Math.PI,
+    );
+    const proximity = Math.max(0, 1 - phaseDelta / phaseWindow);
+    const pulse = 0.45 + proximity * (0.55 + normalizedRpm * 0.35);
+
+    ctx.beginPath();
+    ctx.arc(port.x, port.y, (5 + pulse * pulseRadiusBoost) * scale, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${port.rgb},${0.38 + pulse * 0.55})`;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(port.x, port.y, (10 + pulse * glowRadiusBoost) * scale, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${port.rgb},${0.06 + pulse * 0.14})`;
+    ctx.fill();
+
+    ctx.font = `${labelFontSize}px "Share Tech Mono"`;
+    ctx.fillStyle = `rgba(${c.white},${0.3 + pulse * 0.55})`;
+    ctx.textAlign = "center";
+    ctx.fillText(port.label, port.x, port.y + 28 * scale);
+  });
 }
 
 export function createRotaryEngineRenderer(
@@ -108,11 +181,13 @@ export function createRotaryEngineRenderer(
     draw(
       ctx: CanvasRenderingContext2D,
       shaftAngle: number,
-      opts?: { skipLabels?: boolean; compact?: boolean; rpm?: number },
+      opts?: { skipLabels?: boolean; skipPortLabels?: boolean; compact?: boolean; rpm?: number; colors?: ThemeColors },
     ): void {
       const skipLabels = opts?.skipLabels ?? false;
+      const skipPortLabels = opts?.skipPortLabels ?? false;
       const compact = opts?.compact ?? false;
       const rpm = opts?.rpm ?? FALLBACK_IDLE_RPM;
+      const c = opts?.colors ?? DARK_COLORS;
 
       ctx.clearRect(0, 0, canvasSize, canvasSize);
       ctx.save();
@@ -136,8 +211,8 @@ export function createRotaryEngineRenderer(
           canvasCenter, canvasCenter, 120 * scale,
           canvasCenter, canvasCenter, 240 * scale,
         );
-        glowGradient.addColorStop(0, "rgba(230,57,70,0.02)");
-        glowGradient.addColorStop(1, "rgba(230,57,70,0)");
+        glowGradient.addColorStop(0, `rgba(${c.red},0.02)`);
+        glowGradient.addColorStop(1, `rgba(${c.red},0)`);
         ctx.beginPath();
         ctx.arc(canvasCenter, canvasCenter, 240 * scale, 0, Math.PI * 2);
         ctx.fillStyle = glowGradient;
@@ -151,10 +226,10 @@ export function createRotaryEngineRenderer(
         ctx.lineTo(housingPoints[i].x, housingPoints[i].y);
       }
       ctx.closePath();
-      ctx.strokeStyle = "rgba(230,57,70,0.5)";
+      ctx.strokeStyle = `rgba(${c.red},0.5)`;
       ctx.lineWidth = lw(2);
       ctx.stroke();
-      ctx.strokeStyle = "rgba(230,57,70,0.12)";
+      ctx.strokeStyle = `rgba(${c.red},0.12)`;
       ctx.lineWidth = lw(6);
       ctx.stroke();
 
@@ -167,7 +242,7 @@ export function createRotaryEngineRenderer(
         else ctx.lineTo(offsetX, offsetY);
       });
       ctx.closePath();
-      ctx.strokeStyle = "rgba(230,57,70,0.22)";
+      ctx.strokeStyle = `rgba(${c.red},0.22)`;
       ctx.lineWidth = lw(1.1);
       ctx.stroke();
 
@@ -183,12 +258,12 @@ export function createRotaryEngineRenderer(
         ctx.lineTo(points[i].x, points[i].y);
       }
       ctx.closePath();
-      ctx.fillStyle = "rgba(230,57,70,0.05)";
+      ctx.fillStyle = `rgba(${c.red},0.05)`;
       ctx.fill();
-      ctx.strokeStyle = "rgba(230,57,70,0.7)";
+      ctx.strokeStyle = `rgba(${c.red},0.7)`;
       ctx.lineWidth = lw(2);
       ctx.stroke();
-      ctx.strokeStyle = "rgba(230,57,70,0.08)";
+      ctx.strokeStyle = `rgba(${c.red},0.08)`;
       ctx.lineWidth = lw(6);
       ctx.stroke();
 
@@ -208,21 +283,21 @@ export function createRotaryEngineRenderer(
         else ctx.lineTo(gx, gy);
       }
       ctx.closePath();
-      ctx.strokeStyle = "rgba(230,57,70,0.2)";
+      ctx.strokeStyle = `rgba(${c.red},0.2)`;
       ctx.lineWidth = lw(1.5);
       ctx.stroke();
 
       ctx.beginPath();
       ctx.arc(rcX, rcY, rotorGearRadius - lw(2), 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(230,57,70,0.1)";
+      ctx.strokeStyle = `rgba(${c.red},0.1)`;
       ctx.lineWidth = lw(1);
       ctx.stroke();
 
       ctx.beginPath();
       ctx.arc(rcX, rcY, Math.max(lw(4), 24 * scale), 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(230,57,70,0.03)";
+      ctx.fillStyle = `rgba(${c.red},0.03)`;
       ctx.fill();
-      ctx.strokeStyle = "rgba(230,57,70,0.18)";
+      ctx.strokeStyle = `rgba(${c.red},0.18)`;
       ctx.lineWidth = lw(1.5);
       ctx.stroke();
 
@@ -230,86 +305,33 @@ export function createRotaryEngineRenderer(
       apexes.forEach((apex) => {
         ctx.beginPath();
         ctx.arc(apex.x, apex.y, Math.max(lw(2), 4 * scale), 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(0,180,216,0.9)";
+        ctx.fillStyle = `rgba(${c.blue},0.9)`;
         ctx.fill();
         ctx.beginPath();
         ctx.arc(apex.x, apex.y, Math.max(lw(3.5), 9 * scale), 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(0,180,216,0.15)";
+        ctx.fillStyle = `rgba(${c.blue},0.15)`;
         ctx.fill();
       });
 
       // Shaft center
       ctx.beginPath();
       ctx.arc(canvasCenter, canvasCenter, Math.max(lw(3), 14 * scale), 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(230,57,70,0.04)";
+      ctx.fillStyle = `rgba(${c.red},0.04)`;
       ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.strokeStyle = `rgba(${c.white},0.15)`;
       ctx.lineWidth = lw(1);
       ctx.stroke();
 
       ctx.beginPath();
       ctx.arc(canvasCenter, canvasCenter, Math.max(lw(1.5), 4 * scale), 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(230,57,70,0.7)";
+      ctx.fillStyle = `rgba(${c.red},0.7)`;
       ctx.fill();
 
       ctx.restore();
 
-      // Port labels (skipped for mini canvas)
-      if (!skipLabels) {
-        const portDistance = generatingRadius + eccentricity + 36 * scale;
-        const cyclePhase = ((shaftAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-        const phaseWindow = (Math.PI * 2) / 3;
-        const normalizedRpm = Math.max(0, Math.min(1, rpm / REDLINE_RPM));
-        const pulseRadiusBoost = 2 + 8 * normalizedRpm;
-        const glowRadiusBoost = 6 + 18 * normalizedRpm;
-        const labelFontSize = Math.max(16 * scale, 18);
-        const ports = [
-          {
-            x: canvasCenter - portDistance * 0.85,
-            y: canvasCenter - portDistance * 0.5,
-            color: "rgb(0,180,216)",
-            label: "INTAKE",
-            phaseOffset: 0,
-          },
-          {
-            x: canvasCenter + portDistance * 0.85,
-            y: canvasCenter,
-            color: "rgb(6,214,160)",
-            label: "SPARK",
-            phaseOffset: phaseWindow,
-          },
-          {
-            x: canvasCenter - portDistance * 0.85,
-            y: canvasCenter + portDistance * 0.5,
-            color: "rgb(255,107,53)",
-            label: "EXHAUST",
-            phaseOffset: phaseWindow * 2,
-          },
-        ];
-
-        ports.forEach((port) => {
-          const phaseDelta = Math.abs(
-            ((((cyclePhase - port.phaseOffset) % (Math.PI * 2)) + Math.PI * 3) % (Math.PI * 2)) -
-              Math.PI,
-          );
-          const proximity = Math.max(0, 1 - phaseDelta / phaseWindow);
-          const pulse = 0.45 + proximity * (0.55 + normalizedRpm * 0.35);
-
-          ctx.beginPath();
-          ctx.arc(port.x, port.y, (5 + pulse * pulseRadiusBoost) * scale, 0, Math.PI * 2);
-          ctx.fillStyle = port.color.replace("rgb(", "rgba(").replace(")", `, ${0.38 + pulse * 0.55})`);
-          ctx.fill();
-
-          ctx.beginPath();
-          ctx.arc(port.x, port.y, (10 + pulse * glowRadiusBoost) * scale, 0, Math.PI * 2);
-          ctx.fillStyle = port.color.replace("rgb(", "rgba(").replace(")", `, ${0.06 + pulse * 0.14})`);
-          ctx.fill();
-
-          ctx.font = `${labelFontSize}px "Share Tech Mono"`;
-          ctx.fillStyle = `rgba(255,255,255,${0.3 + pulse * 0.55})`;
-          ctx.textAlign = "center";
-          ctx.fillText(port.label, port.x, port.y + 28 * scale);
-        });
+      // Port labels (skipped for mini canvas and when rendered on a separate static canvas)
+      if (!skipLabels && !skipPortLabels) {
+        drawPortLabels(ctx, canvasSize, shaftAngle, { rpm, colors: c });
       }
     },
   };

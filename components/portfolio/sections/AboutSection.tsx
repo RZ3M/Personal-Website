@@ -31,6 +31,14 @@ export const AboutSection = React.memo(function AboutSection() {
           </p>
           <br />
           <p>
+            That same mix shaped my academic path too, from{" "}
+            <span className="blue">Electrical Engineering</span> foundations at
+            Waterloo to a <span className="highlight">Computer Science</span>{" "}
+            degree at Ontario Tech, giving me equal respect for systems that
+            have to perform cleanly on paper and under load.
+          </p>
+          <br />
+          <p>
             When I&apos;m not writing code or automating workflows, you&apos;ll find
             me exploring <span className="blue">AI automation</span>, creating
             art, or diving into whatever creative rabbit hole I&apos;ve

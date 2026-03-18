@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { getThemeColors } from "@/lib/theme-colors";
+import { useTheme } from "@/hooks/use-theme";
 
 export function useParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = useTheme();
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,13 +56,11 @@ export function useParticleCanvas() {
       }
 
       draw() {
-        const color =
-          this.hue === 355
-            ? `rgba(230,57,70,${this.opacity})`
-            : `rgba(0,180,216,${this.opacity})`;
+        const colors = getThemeColors(themeRef.current);
+        const rgb = this.hue === 355 ? colors.red : colors.blue;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = color;
+        ctx.fillStyle = `rgba(${rgb},${this.opacity})`;
         ctx.fill();
       }
     }
@@ -68,6 +71,7 @@ export function useParticleCanvas() {
     };
 
     const drawConnections = () => {
+      const colors = getThemeColors(themeRef.current);
       for (let first = 0; first < particles.length; first += 1) {
         for (let second = first + 1; second < particles.length; second += 1) {
           const dx = particles[first].x - particles[second].x;
@@ -78,7 +82,7 @@ export function useParticleCanvas() {
             ctx.beginPath();
             ctx.moveTo(particles[first].x, particles[first].y);
             ctx.lineTo(particles[second].x, particles[second].y);
-            ctx.strokeStyle = `rgba(230,57,70,${opacity})`;
+            ctx.strokeStyle = `rgba(${colors.red},${opacity})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
