@@ -25,7 +25,7 @@ const shareTechMono = Share_Tech_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Jack Ma — Software Engineer | Creator | Builder",
+  title: "Jack Ma — Software Engineer | Maker | Artist",
   description:
     "Portfolio of Jack Ma — Software Engineer, 3D printing enthusiast, rotary engine lover, and creative builder.",
 };

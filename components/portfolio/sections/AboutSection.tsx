@@ -14,36 +14,45 @@ export const AboutSection = React.memo(function AboutSection() {
         <div className="about-text reveal reveal-delay-2">
           <p>
             I&apos;m a <span className="highlight">software engineer</span> based in
-            Toronto with a deep love for building things — whether that&apos;s{" "}
-            <span className="red">cloud infrastructure</span>,{" "}
-            <span className="blue">full-stack applications</span>, or
-            physical objects off my 3D printer.
+            Toronto with a deep passion for building things, whether that&apos;s{" "}
+            <span className="blue">full-stack applications</span>,{" "}
+            <span className="highlight">AI automation systems</span>, or{" "}
+            <span className="red">CAD models for 3D printing</span>.
+          </p>
+          <br />
+          <p>
+            With a background in{" "}
+            <span className="blue">Electrical Engineering</span> at the
+            <span className="highlight"> University of Waterloo</span> and{" "}
+            <span className="blue">Computer Science</span> at{" "}
+            <span className="highlight">Ontario Tech University</span>, I have
+            equal respect for systems{" "}
+            <span className="highlight">digital and physical</span>.
           </p>
           <br />
           <p>
             My world sits at the intersection of{" "}
-            <span className="highlight">engineering and creativity</span>. I
-            design my own 3D models, obsess over{" "}
-            <span className="red">rotary engines</span> (proud former RX-8
-            owner — yes, I know about the apex seals), and follow{" "}
-            <span className="highlight">Formula 1</span> with the intensity
-            of a race strategist.
+            <span className="highlight">engineering and art</span>, and to me
+            they&apos;re one and the same. A perfectly executing system is as
+            beautiful as a Picasso or Van Gogh. When humanity can create
+            machinery that works better than the sum of its parts, does that
+            machine not have a <span className="red">soul of its own</span>?
           </p>
           <br />
           <p>
-            That same mix shaped my academic path too, from{" "}
-            <span className="blue">Electrical Engineering</span> foundations at
-            Waterloo to a <span className="highlight">Computer Science</span>{" "}
-            degree at Ontario Tech, giving me equal respect for systems that
-            have to perform cleanly on paper and under load.
-          </p>
-          <br />
-          <p>
-            When I&apos;m not writing code or automating workflows, you&apos;ll find
-            me exploring <span className="blue">AI automation</span>, creating
-            art, or diving into whatever creative rabbit hole I&apos;ve
-            discovered that week. I bring that same curiosity and
-            relentlessness to every line of code I write.
+            My favourite art piece is{" "}
+            <a
+              className="highlight"
+              href="https://en.wikipedia.org/wiki/The_Garden_of_Earthly_Delights"
+              rel="noreferrer"
+              target="_blank"
+            >
+              The Garden of Earthly Delights
+            </a>{" "}
+            by Bosch, and I previously owned a{" "}
+            <span className="red">2010 Mazda RX-8</span>, which inspired this
+            website. When I&apos;m not smacking my keyboard, you&apos;ll find me at
+            the gym, cooking a tasty meal, or cycling around the city.
           </p>
         </div>
 

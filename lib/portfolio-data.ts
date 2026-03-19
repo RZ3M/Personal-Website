@@ -31,7 +31,7 @@ export const aboutStats = [
 
 export const experiences = [
   {
-    lap: "SEP 2025 — APR 2026",
+    lap: "SEP 2025 — Present",
     company: "DAYFORCE",
     role: "Software Engineer (DevOps)",
     location: "North York, ON",

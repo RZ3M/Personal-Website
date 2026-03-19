@@ -52,7 +52,7 @@ export const HeroSection = React.memo(function HeroSection({
 
       <h1 className="hero-title">JACK MA</h1>
       <p className="hero-subtitle">
-        Software Engineer &nbsp;|&nbsp; Creator &nbsp;|&nbsp; Builder
+        Software Engineer &nbsp;|&nbsp; Maker &nbsp;|&nbsp; Artist
       </p>
       <p className="hero-tagline">
         <span className="hero-tagline-text" ref={taglineTextRef}>
