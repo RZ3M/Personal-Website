@@ -55,6 +55,8 @@ const GROOVE_OUTER_WIDTH = 16;
 const GROOVE_INNER_WIDTH = 10;
 const ICON_SIZE = 24;
 const ICON_OFFSET = 40;
+const SHIFTER_SEGMENT_PROGRESS_PER_SECOND = 8.64;
+const MAX_ANIMATION_DELTA_MS = 100;
 
 const GEAR_ICONS: Record<number, LucideIcon> = {
   1: House,
@@ -167,7 +169,7 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
 
     let segmentIndex = 0;
     let segmentProgress = 0;
-    const speed = 0.06;
+    let lastFrameTime = performance.now();
 
     const step = () => {
       if (isDraggingRef.current) {
@@ -175,9 +177,14 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
         return;
       }
 
-      segmentProgress += speed;
-      if (segmentProgress >= 1) {
-        segmentProgress = 0;
+      const now = performance.now();
+      const deltaMs = Math.min(now - lastFrameTime, MAX_ANIMATION_DELTA_MS);
+      const deltaSec = deltaMs / 1000;
+      lastFrameTime = now;
+
+      segmentProgress += SHIFTER_SEGMENT_PROGRESS_PER_SECOND * deltaSec;
+      while (segmentProgress >= 1 && segmentIndex < path.length - 1) {
+        segmentProgress -= 1;
         segmentIndex++;
       }
 
