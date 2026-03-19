@@ -33,14 +33,26 @@ export const ProjectsSection = React.memo(function ProjectsSection() {
                     <span key={tech}>{tech}</span>
                   ))}
                 </div>
-                <a
-                  className="project-link"
-                  href={project.href}
-                  target="_blank"
-                  rel="noopener"
-                >
-                  VIEW ON GITHUB <span>→</span>
-                </a>
+                <div className="project-links">
+                  {"demoHref" in project ? (
+                    <a
+                      className="project-link"
+                      href={project.demoHref}
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      VIEW DEMO <span>→</span>
+                    </a>
+                  ) : null}
+                  <a
+                    className="project-link"
+                    href={project.href}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    VIEW ON GITHUB <span>→</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>

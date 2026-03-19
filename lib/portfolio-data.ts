@@ -161,6 +161,19 @@ export const projects = [
     href: "https://github.com/RZ3M/fragments",
     delayClass: "reveal-delay-3",
   },
+  {
+    badge: "3D INTERACTIVE",
+    name: "CUBE 3D",
+    brief:
+      "Interactive 3D Rubik's Cube with drag turns, keyboard moves, and solve playback",
+    backTitle: "CUBE 3D",
+    description:
+      "Interactive 3D Rubik's Cube built with React and Three.js, focused on direct manipulation through drag-based layer turns, keyboard controls, instant scramble/reset actions, and self solve.",
+    techStack: ["React", "Three.js", "@react-three/fiber", "drei", "postprocessing", "Vite"],
+    href: "https://github.com/RZ3M/cube-3d",
+    demoHref: "https://cube-3d-weld.vercel.app/",
+    delayClass: "reveal-delay-2",
+  },
 ] as const;
 
 type SkillPanel = {

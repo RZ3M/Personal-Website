@@ -75,7 +75,7 @@ body {
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
 ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 3px; }
 
-a { color: var(--blue); text-decoration: none; transition: color 0.3s; }
+a { color: var(--blue); text-decoration: none; transition: color 0.3s; cursor: none; }
 a:hover { color: var(--red); }
 
 /* ═══════════════════════════════════════════════════════
@@ -1081,6 +1081,13 @@ button:focus-visible,
   color: var(--blue);
 }
 
+.project-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
 .project-link {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -1090,10 +1097,21 @@ button:focus-visible,
   align-items: center;
   gap: 8px;
   text-transform: uppercase;
-  transition: gap 0.3s;
+  width: fit-content;
+  transition: color 0.3s, transform 0.3s;
 }
 
-.project-link:hover { gap: 14px; color: var(--blue); }
+.project-link span {
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.project-link:hover {
+  color: var(--blue);
+  transform: translateX(4px);
+}
+
+.project-link:hover span { transform: translateX(4px); }
 
 /* ═══════════════════════════════════════════════════════
    SKILLS SECTION (Telemetry Dashboard)
