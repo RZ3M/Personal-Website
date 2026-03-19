@@ -23,7 +23,7 @@ export const sectionNav: readonly SectionNavItem[] = [
 ];
 
 export const aboutStats = [
-  { number: "3", label: "Companies" },
+  { number: "4", label: "Companies" },
   { number: "3.86", label: "GPA" },
   { number: "2", label: "Degrees" },
   { number: "∞", label: "Curiosity" },
@@ -79,7 +79,7 @@ export const experiences = [
   {
     lap: "SEP 2022 — APR 2023",
     company: "ROYAL BANK OF CANADA",
-    role: "Software Developer (Full Stack)",
+    role: "Software Engineer (Full Stack)",
     location: "Toronto, ON",
     bullets: [
       [
@@ -131,6 +131,35 @@ export const experiences = [
           type: "text",
           content: ", cutting onboarding from days to hours",
         },
+      ],
+    ] satisfies ExperiencePart[][],
+  },
+  {
+    lap: "JAN 2019 — APR 2019",
+    company: "ONTARIO MINISTRY OF EDUCATION",
+    role: "QA Engineer",
+    location: "Toronto, ON, Canada",
+    bullets: [
+      [
+        { type: "text", content: "Improved release confidence across " },
+        { type: "strong", content: "10+" },
+        { type: "text", content: " web applications by leading functional, regression, accessibility, and security testing" },
+      ],
+      [
+        { type: "text", content: "Cut test execution time by automating over " },
+        { type: "strong", content: "90%" },
+        { type: "text", content: " of test coverage using " },
+        { type: "tag", content: "Selenium" },
+        { type: "text", content: " and " },
+        { type: "tag", content: "SQL Server" },
+        { type: "text", content: ", improving reliability and repeatability across QA cycles" },
+      ],
+      [
+        { type: "text", content: "Protected platform integrity by identifying pre-production " },
+        { type: "strong", content: "security vulnerabilities" },
+        { type: "text", content: " and enforcing " },
+        { type: "tag", content: "WCAG 2.0" },
+        { type: "text", content: " accessibility compliance before release" },
       ],
     ] satisfies ExperiencePart[][],
   },
