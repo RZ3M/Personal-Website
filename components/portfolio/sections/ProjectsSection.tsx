@@ -50,7 +50,7 @@ export const ProjectsSection = React.memo(function ProjectsSection() {
                     target="_blank"
                     rel="noopener"
                   >
-                    VIEW ON GITHUB <span>→</span>
+                    {"linkLabel" in project ? project.linkLabel : "VIEW ON GITHUB"} <span>→</span>
                   </a>
                 </div>
               </div>

@@ -203,6 +203,19 @@ export const projects = [
     demoHref: "https://cube-3d-weld.vercel.app/",
     delayClass: "reveal-delay-2",
   },
+  {
+    badge: "FREE CAD / 3D PRINT",
+    name: "OIL CHANGE FUNNELS",
+    brief:
+      "Precision CAD funnel system for cleaner oil changes, storage, and engine-specific fitment",
+    backTitle: "3D PRINTED CAR FUNNELS",
+    description:
+      "Designed precise screw-on oil funnels in CAD to thread cleanly onto engine fill ports, with a matching cap for mess-free storage and a built-in hanging hook. Released fully free designs spanning 3+ car brands and driving 3K+ downloads from the community.",
+    techStack: ["CAD", "3D Printing", "Automotive", "DFM", "MakerWorld"],
+    href: "https://makerworld.com/en/@grapes/upload",
+    linkLabel: "VIEW ON MAKERWORLD",
+    delayClass: "reveal-delay-3",
+  },
 ] as const;
 
 type SkillPanel = {
