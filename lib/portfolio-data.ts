@@ -96,7 +96,7 @@ export const experiences = [
         { type: "tag", content: "MariaDB" },
         { type: "text", content: " queries and " },
         { type: "tag", content: "Elasticsearch" },
-        { type: "text", content: " indices — report gen dropped from 10s to " },
+        { type: "text", content: " indices, reducing report gen from 10s to " },
         { type: "strong", content: "3s" },
       ],
       [
