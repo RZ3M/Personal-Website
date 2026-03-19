@@ -138,7 +138,7 @@ export const experiences = [
     lap: "JAN 2019 — APR 2019",
     company: "ONTARIO MINISTRY OF EDUCATION",
     role: "QA Engineer",
-    location: "Toronto, ON, Canada",
+    location: "Toronto, ON",
     bullets: [
       [
         { type: "text", content: "Improved release confidence across " },
