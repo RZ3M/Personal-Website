@@ -901,39 +901,6 @@ button:focus-visible,
   margin-bottom: 16px;
 }
 
-.timeline-bullets {
-  list-style: none;
-}
-
-.timeline-bullets li {
-  position: relative;
-  padding-left: 20px;
-  margin-bottom: 10px;
-  font-size: 15px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.timeline-bullets li::before {
-  content: '▸';
-  position: absolute;
-  left: 0;
-  color: var(--red);
-  font-size: 14px;
-}
-
-.timeline-bullets .tech-tag {
-  display: inline-block;
-  padding: 1px 8px;
-  background: rgba(0,180,216,0.1);
-  border: 1px solid rgba(0,180,216,0.2);
-  border-radius: 3px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--blue);
-  margin: 2px 2px;
-}
-
 /* ═══════════════════════════════════════════════════════
    PROJECTS SECTION (Pit Board Cards)
    ═══════════════════════════════════════════════════════ */
