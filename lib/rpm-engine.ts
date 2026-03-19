@@ -9,6 +9,7 @@ const REDLINE_RPM = 9500;
 const LIMITER_ENTRY_RPM = REDLINE_RPM - 18;
 const LIMITER_DROP_RPM = REDLINE_RPM - 135;
 const LIMITER_RECOVER_RPM = REDLINE_RPM;
+const ROTATION_REFERENCE_FPS = 144;
 
 type LimiterMode = "off" | "cut" | "recover";
 
@@ -62,11 +63,19 @@ function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
 
-export function rpmToRotationSpeed(rpm: number): number {
+export function rpmToRotationSpeed(rpm: number, elapsedSec = 0): number {
   const normalized = Math.max(0, Math.min(1, rpm / REDLINE_RPM));
-  const base = 0.012 + normalized * 0.18 + normalized * normalized * 0.12;
-  if (rpm < 1200) return Math.max(0.005, base + (Math.random() - 0.5) * 0.005);
-  return base;
+  const basePerFrame = 0.012 + normalized * 0.18 + normalized * normalized * 0.12;
+  const baseAngularVelocity = basePerFrame * ROTATION_REFERENCE_FPS;
+
+  if (rpm < 1200) {
+    const wobblePerFrame =
+      Math.sin(elapsedSec * 17.3) * 0.0018 +
+      Math.cos(elapsedSec * 9.1) * 0.0007;
+    return Math.max(0.005 * ROTATION_REFERENCE_FPS, (basePerFrame + wobblePerFrame) * ROTATION_REFERENCE_FPS);
+  }
+
+  return baseAngularVelocity;
 }
 
 export function createRpmEngine(): RpmEngine {

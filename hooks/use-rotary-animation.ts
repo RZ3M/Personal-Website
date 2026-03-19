@@ -181,18 +181,21 @@ export function useRotaryAnimation(rpmEngineRef: { current: RpmEngine | null }) 
     let frameId = 0;
     let lastFrameTime = performance.now();
     let lastUiUpdateTime = 0;
+    let elapsedAnimationSec = 0;
 
     const animate = () => {
       const now = performance.now();
       const deltaMs = now - lastFrameTime;
+      const deltaSec = Math.min(deltaMs / 1000, 0.1);
       lastFrameTime = now;
+      elapsedAnimationSec += deltaSec;
 
       const engine = rpmEngineRef.current!;
       engine.tick(deltaMs);
       const rpm = engine.getRpm();
       const throttle = engine.getThrottle();
       const limiterActive = engine.isAtLimiter();
-      shaftAngle += rpmToRotationSpeed(rpm);
+      shaftAngle += rpmToRotationSpeed(rpm, elapsedAnimationSec) * deltaSec;
 
       const colors = getThemeColors(themeRef.current);
       if (heroVisibleRef.current) {
