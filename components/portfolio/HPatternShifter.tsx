@@ -135,6 +135,7 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
   const currentGearRef = useRef(1);
   const knobXRef = useRef(SVG_POSITIONS.G1.x);
   const knobYRef = useRef(SVG_POSITIONS.G1.y);
+  const svgRectRef = useRef<DOMRectReadOnly | null>(null);
 
   const findNearestNode = useCallback((x: number, y: number): NodeId => {
     let best: NodeId = "R0";
@@ -253,6 +254,10 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
     e.stopPropagation();
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
 
+    if (svgRef.current) {
+      svgRectRef.current = svgRef.current.getBoundingClientRect();
+    }
+
     if (isAnimatingRef.current) {
       cancelAnimationFrame(animFrameRef.current);
       isAnimatingRef.current = false;
@@ -263,9 +268,9 @@ export function HPatternShifter({ activeSectionIndex, onGearEngage, onDragMove, 
   }, []);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDraggingRef.current || !svgRef.current) return;
+    if (!isDraggingRef.current || !svgRectRef.current) return;
 
-    const rect = svgRef.current.getBoundingClientRect();
+    const rect = svgRectRef.current;
     const rawX = ((e.clientX - rect.left) / rect.width) * SVG_W;
     const rawY = ((e.clientY - rect.top) / rect.height) * SVG_H;
 

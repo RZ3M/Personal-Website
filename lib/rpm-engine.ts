@@ -6,9 +6,13 @@ export interface GearBand {
 
 const TRUE_IDLE_RPM = 750;
 const REDLINE_RPM = 9500;
-const LIMITER_ENTRY_RPM = REDLINE_RPM - 18;
-const LIMITER_DROP_RPM = REDLINE_RPM - 135;
-const LIMITER_RECOVER_RPM = REDLINE_RPM;
+// Redline hysteresis: engine requests fuel-cut just before redline (ENTRY).
+// Once cut triggers, RPM drops rapidly until below DROP threshold, then
+// either recovers back to redline (if throttle still held) or exits limiter.
+// RECOVER is the RPM ceiling during the recovery phase before re-cutting.
+const LIMITER_ENTRY_RPM = REDLINE_RPM - 18;   // fuel-cut request threshold
+const LIMITER_DROP_RPM   = REDLINE_RPM - 135;  // RPM floor during cut before recover attempt
+const LIMITER_RECOVER_RPM = REDLINE_RPM;       // ceiling RPM during recover phase
 const ROTATION_REFERENCE_FPS = 144;
 
 type LimiterMode = "off" | "cut" | "recover";
@@ -121,6 +125,7 @@ export function createRpmEngine(): RpmEngine {
     tick(deltaMs: number): void {
       const deltaSec = Math.min(deltaMs / 1000, 0.1);
       const band = GEAR_BANDS[state.gear - 1];
+      if (!band) return;
 
       state.oscillationTime += deltaSec;
       state.limiterElapsedMs += deltaMs;

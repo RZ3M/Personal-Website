@@ -32,7 +32,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       document.documentElement.setAttribute("data-theme", next);
       try {
         localStorage.setItem("theme", next);
-      } catch {}
+      } catch (e) {
+        console.warn("[theme] localStorage write failed:", e);
+      }
       return next;
     });
   }, []);

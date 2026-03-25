@@ -13,6 +13,7 @@ import { createRotaryEngineRenderer, drawPortLabels } from "@/components/portfol
 import { getThemeColors } from "@/lib/theme-colors";
 import { createRpmEngine, rpmToRotationSpeed, type RpmEngine } from "@/lib/rpm-engine";
 import { useTheme } from "@/hooks/use-theme";
+import { useAnimationLoop } from "@/hooks/use-animation-loop";
 
 type EngineSurface = "hero" | "mini";
 
@@ -35,6 +36,10 @@ const FULL_THROTTLE = 1;
 
 export function useRotaryAnimation(rpmEngineRef: { current: RpmEngine | null }) {
   const { theme } = useTheme();
+  // Deliberate stale ref pattern: avoids re-subscribing to theme context on every
+  // render while still giving the RAF loop access to the current theme value without
+  // needing to pass theme as a dependency (which would restart the entire animation
+  // loop on every theme change). The ref is kept in sync via the useEffect below.
   const themeRef = useRef(theme);
   themeRef.current = theme;
 
@@ -44,6 +49,18 @@ export function useRotaryAnimation(rpmEngineRef: { current: RpmEngine | null }) 
   const heroVisibleRef = useRef(true);
   const hoverCountRef = useRef(0);
   const activeSurfaceRef = useRef<EngineSurface | null>(null);
+  const activeCaptureRef = useRef<HTMLElement | null>(null);
+  const activePointerIdRef = useRef<number>(-1);
+
+  // Animation state refs — populated once engine/renderers are ready
+  const engineRef = useRef<RpmEngine | null>(null);
+  const heroCtxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const miniCtxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const heroRendererRef = useRef<ReturnType<typeof createRotaryEngineRenderer> | null>(null);
+  const miniRendererRef = useRef<ReturnType<typeof createRotaryEngineRenderer> | null>(null);
+  const shaftAngleRef = useRef(0);
+  const elapsedAnimationSecRef = useRef(0);
+  const lastUiUpdateTimeRef = useRef(0);
 
   const [displayRpm, setDisplayRpm] = useState(750);
   const [displayThrottle, setDisplayThrottle] = useState(0);
@@ -57,12 +74,19 @@ export function useRotaryAnimation(rpmEngineRef: { current: RpmEngine | null }) 
   const releaseThrottle = useCallback(() => {
     rpmEngineRef.current?.stopThrottle();
     activeSurfaceRef.current = null;
+    activeCaptureRef.current = null;
+    activePointerIdRef.current = -1;
     setIsThrottleActive(false);
   }, [rpmEngineRef]);
 
   const handlePointerDown = useCallback(
     (surface: EngineSurface, event: ReactPointerEvent<HTMLElement>) => {
+      if (activeCaptureRef.current && activeCaptureRef.current !== event.currentTarget) {
+        activeCaptureRef.current.releasePointerCapture(activePointerIdRef.current);
+      }
       activeSurfaceRef.current = surface;
+      activeCaptureRef.current = event.currentTarget as HTMLElement;
+      activePointerIdRef.current = event.pointerId;
       event.currentTarget.setPointerCapture(event.pointerId);
       const firstThrottle = rpmEngineRef.current?.startThrottle(FULL_THROTTLE) ?? false;
       if (firstThrottle) setShowThrottleHint(false);
@@ -163,6 +187,7 @@ export function useRotaryAnimation(rpmEngineRef: { current: RpmEngine | null }) 
     return () => observer.disconnect();
   }, []);
 
+  // Set up engine and renderers once canvas elements are available
   useEffect(() => {
     rpmEngineRef.current = createRpmEngine();
 
@@ -174,74 +199,71 @@ export function useRotaryAnimation(rpmEngineRef: { current: RpmEngine | null }) 
     const miniCtx = miniCanvas.getContext("2d");
     if (!heroCtx || !miniCtx) return;
 
-    const heroRenderer = createRotaryEngineRenderer(1040);
-    const miniRenderer = createRotaryEngineRenderer(400, { minLineWidth: 2 });
-
-    let shaftAngle = 0;
-    let frameId = 0;
-    let lastFrameTime = performance.now();
-    let lastUiUpdateTime = 0;
-    let elapsedAnimationSec = 0;
-
-    const animate = () => {
-      const now = performance.now();
-      const deltaMs = now - lastFrameTime;
-      const deltaSec = Math.min(deltaMs / 1000, 0.1);
-      lastFrameTime = now;
-      elapsedAnimationSec += deltaSec;
-
-      const engine = rpmEngineRef.current!;
-      engine.tick(deltaMs);
-      const rpm = engine.getRpm();
-      const throttle = engine.getThrottle();
-      const limiterActive = engine.isAtLimiter();
-      shaftAngle += rpmToRotationSpeed(rpm, elapsedAnimationSec) * deltaSec;
-
-      const colors = getThemeColors(themeRef.current);
-      if (heroVisibleRef.current) {
-        heroRenderer.draw(heroCtx, shaftAngle, { rpm, colors, skipPortLabels: true });
-        const labelsCanvas = rotaryLabelsCanvasRef.current;
-        if (labelsCanvas) {
-          const labelsCtx = labelsCanvas.getContext("2d");
-          if (labelsCtx) drawPortLabels(labelsCtx, 1040, shaftAngle, { rpm, colors });
-        }
-      } else {
-        miniRenderer.draw(miniCtx, shaftAngle, { skipLabels: true, compact: true, rpm, colors });
-      }
-
-      if (now - lastUiUpdateTime > 50) {
-        const normalizedRpm = Math.max(0, Math.min(1, rpm / 9500));
-        const rumbleIntensity =
-          normalizedRpm < 0.16 && throttle < 0.04
-            ? 0
-            : Math.min(1, normalizedRpm * 0.65 + throttle * 0.35);
-        const rumblePhase = now * (0.0105 + normalizedRpm * 0.0018);
-        const rumbleX =
-          Math.sin(rumblePhase * 1.37) * (0.18 + rumbleIntensity * 0.7);
-        const rumbleY =
-          Math.cos(rumblePhase * 1.91) * (0.12 + rumbleIntensity * 0.46);
-        const rumbleRot =
-          Math.sin(rumblePhase * 0.92) * (0.04 + rumbleIntensity * 0.14);
-
-        setDisplayRpm(Math.floor(rpm));
-        setDisplayThrottle(throttle);
-        setIsAtLimiter(limiterActive);
-        setShowThrottleHint(!engine.hasThrottleInteracted());
-        setIsThrottleActive(throttle > 0.03);
-        setEngineRumbleStyle({
-          "--engine-rumble-x": `${rumbleX.toFixed(3)}px`,
-          "--engine-rumble-y": `${rumbleY.toFixed(3)}px`,
-          "--engine-rumble-rot": `${rumbleRot.toFixed(3)}deg`,
-        } as CSSProperties);
-        lastUiUpdateTime = now;
-      }
-
-      frameId = window.requestAnimationFrame(animate);
-    };
-
-    frameId = window.requestAnimationFrame(animate);
-    return () => window.cancelAnimationFrame(frameId);
+    engineRef.current = rpmEngineRef.current;
+    heroCtxRef.current = heroCtx;
+    miniCtxRef.current = miniCtx;
+    heroRendererRef.current = createRotaryEngineRenderer(1040);
+    miniRendererRef.current = createRotaryEngineRenderer(400, { minLineWidth: 2 });
   }, [rpmEngineRef]);
+
+  // Animation loop — called at component top level, guard-checks refs before using them
+  useAnimationLoop((deltaMs) => {
+    const engine = engineRef.current;
+    const heroCtx = heroCtxRef.current;
+    const miniCtx = miniCtxRef.current;
+    const heroRenderer = heroRendererRef.current;
+    const miniRenderer = miniRendererRef.current;
+    if (!engine || !heroCtx || !miniCtx || !heroRenderer || !miniRenderer) return;
+
+    const deltaSec = Math.min(deltaMs / 1000, 0.1);
+    elapsedAnimationSecRef.current += deltaSec;
+
+    engine.tick(deltaMs);
+    const rpm = engine.getRpm();
+    const throttle = engine.getThrottle();
+    const limiterActive = engine.isAtLimiter();
+    shaftAngleRef.current += rpmToRotationSpeed(rpm, elapsedAnimationSecRef.current) * deltaSec;
+
+    const colors = getThemeColors(themeRef.current);
+    if (heroVisibleRef.current) {
+      heroRenderer.draw(heroCtx, shaftAngleRef.current, { rpm, colors, skipPortLabels: true });
+      const labelsCanvas = rotaryLabelsCanvasRef.current;
+      if (labelsCanvas) {
+        const labelsCtx = labelsCanvas.getContext("2d");
+        if (labelsCtx) drawPortLabels(labelsCtx, 1040, shaftAngleRef.current, { rpm, colors });
+      }
+    } else {
+      miniRenderer.draw(miniCtx, shaftAngleRef.current, { skipLabels: true, compact: true, rpm, colors });
+    }
+
+    const now = performance.now();
+    if (now - lastUiUpdateTimeRef.current > 50) {
+      const normalizedRpm = Math.max(0, Math.min(1, rpm / 9500));
+      const rumbleIntensity =
+        normalizedRpm < 0.16 && throttle < 0.04
+          ? 0
+          : Math.min(1, normalizedRpm * 0.65 + throttle * 0.35);
+      const rumblePhase = now * (0.0105 + normalizedRpm * 0.0018);
+      const rumbleX =
+        Math.sin(rumblePhase * 1.37) * (0.18 + rumbleIntensity * 0.7);
+      const rumbleY =
+        Math.cos(rumblePhase * 1.91) * (0.12 + rumbleIntensity * 0.46);
+      const rumbleRot =
+        Math.sin(rumblePhase * 0.92) * (0.04 + rumbleIntensity * 0.14);
+
+      setDisplayRpm(Math.floor(rpm));
+      setDisplayThrottle(throttle);
+      setIsAtLimiter(limiterActive);
+      setShowThrottleHint(!engine.hasThrottleInteracted());
+      setIsThrottleActive(throttle > 0.03);
+      setEngineRumbleStyle({
+        "--engine-rumble-x": `${rumbleX.toFixed(3)}px`,
+        "--engine-rumble-y": `${rumbleY.toFixed(3)}px`,
+        "--engine-rumble-rot": `${rumbleRot.toFixed(3)}deg`,
+      } as CSSProperties);
+      lastUiUpdateTimeRef.current = now;
+    }
+  });
 
   const cursorTelemetry: CursorTelemetryState = {
     isHoveringEngine,

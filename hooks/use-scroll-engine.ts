@@ -10,11 +10,11 @@ export function useScrollEngine(
   previousGearRef: { current: number },
 ) {
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
-  const [scrollPercent, setScrollPercent] = useState(0);
   const lastScrollYRef = useRef(0);
   const scrollSourceRef = useRef<"user" | "shifter">("user");
   const scrollTargetRef = useRef<number | null>(null);
   const scrollGuardTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const scrollFromShifterRef = useRef(false);
 
   const handleGearEngage = useCallback(
     (index: number) => {
@@ -27,10 +27,12 @@ export function useScrollEngine(
       clearTimeout(scrollGuardTimeoutRef.current);
       scrollSourceRef.current = "shifter";
       scrollTargetRef.current = index;
+      scrollFromShifterRef.current = true;
       document.getElementById(sectionNav[index].id)?.scrollIntoView({ behavior: "smooth" });
       scrollGuardTimeoutRef.current = setTimeout(() => {
         scrollSourceRef.current = "user";
         scrollTargetRef.current = null;
+        scrollFromShifterRef.current = false;
       }, 2000);
     },
     [rpmEngineRef, previousGearRef],
@@ -90,8 +92,6 @@ export function useScrollEngine(
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const nextScrollPercent = maxScroll > 0 ? scrollY / maxScroll : 0;
       const scrollDelta = Math.abs(scrollY - lastScrollYRef.current);
       lastScrollYRef.current = scrollY;
 
@@ -105,13 +105,16 @@ export function useScrollEngine(
         if (rect.top < window.innerHeight * 0.5) nextActiveIndex = index;
       });
 
-      setScrollPercent(nextScrollPercent);
-
       if (scrollSourceRef.current === "shifter") {
         if (nextActiveIndex === scrollTargetRef.current) {
           scrollSourceRef.current = "user";
           scrollTargetRef.current = null;
+          scrollFromShifterRef.current = false;
+          clearTimeout(scrollGuardTimeoutRef.current);
           setActiveSectionIndex(nextActiveIndex);
+        } else if (scrollFromShifterRef.current) {
+          scrollFromShifterRef.current = false;
+          clearTimeout(scrollGuardTimeoutRef.current);
         }
         return;
       }
@@ -137,5 +140,5 @@ export function useScrollEngine(
     };
   }, [rpmEngineRef, previousGearRef]);
 
-  return { activeSectionIndex, scrollPercent, handleGearEngage };
+  return { activeSectionIndex, handleGearEngage };
 }

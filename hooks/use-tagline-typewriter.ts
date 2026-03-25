@@ -40,12 +40,30 @@ export function useTaglineTypewriter() {
       }, 500);
     };
 
-    startTimer = window.setTimeout(typeCharacter, 800);
+    let blinkTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const startBlinking = () => {
+      blinkCount = 0;
+      blinkTimeout = setTimeout(() => {
+        taglineCursor.style.opacity = blinkCount % 2 === 0 ? "0" : "1";
+        blinkCount += 1;
+        if (blinkCount > 6) {
+          taglineCursor.style.opacity = "0";
+          return;
+        }
+        blinkTimeout = setTimeout(startBlinking, 500);
+      }, 500);
+    };
+
+    startTimer = window.setTimeout(() => {
+      typeCharacter();
+      startBlinking();
+    }, 800);
 
     return () => {
       window.clearTimeout(startTimer);
       window.clearTimeout(typeTimer);
-      window.clearInterval(blinkTimer);
+      window.clearTimeout(blinkTimeout);
       taglineCursor.style.opacity = "0";
       taglineText.textContent = HERO_TAGLINE;
     };

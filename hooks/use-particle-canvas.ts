@@ -17,11 +17,9 @@ export function useParticleCanvas() {
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    // Alias to non-nullable consts so class closures typecheck
     const c = canvas;
     const ctx = context;
 
-    let frameId = 0;
     const particles: Particle[] = [];
     const particleCount = 60;
 
@@ -90,17 +88,16 @@ export function useParticleCanvas() {
       }
     };
 
+    resizeCanvas();
+    for (let i = 0; i < particleCount; i += 1) particles.push(new Particle());
+
+    let frameId = 0;
     const animateParticles = () => {
       ctx.clearRect(0, 0, c.width, c.height);
       particles.forEach((p) => { p.update(); p.draw(); });
       drawConnections();
       frameId = window.requestAnimationFrame(animateParticles);
     };
-
-    resizeCanvas();
-    for (let i = 0; i < particleCount; i += 1) particles.push(new Particle());
-
-    window.addEventListener("resize", resizeCanvas);
     frameId = window.requestAnimationFrame(animateParticles);
 
     return () => {

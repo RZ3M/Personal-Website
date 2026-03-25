@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
+import { useAnimationLoop } from "@/hooks/use-animation-loop";
 import type { RpmEngine } from "@/lib/rpm-engine";
 
 const HOVER_SELECTOR =
@@ -22,28 +23,57 @@ export function useCursorSystem(
   const trailRefs = useRef<(HTMLDivElement | null)[]>([]);
   const lastPointerPosRef = useRef({ x: 0, y: 0, time: 0 });
   const telemetryRef = useRef(cursorTelemetry);
+  const mousePosRef = useRef({ x: 0, y: 0 });
+  const ringPosRef = useRef({ x: 0, y: 0 });
+  const trailPositionsRef = useRef<Array<{ x: number; y: number }>>([]);
 
   telemetryRef.current = cursorTelemetry;
 
+  // RAF-driven cursor animation loop — called at top level, refs guard readiness
+  useAnimationLoop(() => {
+    const ring = ringRef.current;
+    const trails = trailRefs.current;
+    const positions = trailPositionsRef.current;
+    if (!ring || positions.length !== trails.length || trails.length === 0) return;
+
+    const { x: mouseX, y: mouseY } = mousePosRef.current;
+    ringPosRef.current.x += (mouseX - ringPosRef.current.x) * 0.12;
+    ringPosRef.current.y += (mouseY - ringPosRef.current.y) * 0.12;
+    ring.style.left = `${ringPosRef.current.x - 18}px`;
+    ring.style.top = `${ringPosRef.current.y - 18}px`;
+    ring.dataset.engineHover = String(telemetryRef.current.isHoveringEngine);
+    ring.dataset.throttleActive = String(telemetryRef.current.isThrottleActive);
+    ring.style.setProperty("--throttle-level", telemetryRef.current.throttle.toFixed(3));
+
+    for (let i = trails.length - 1; i > 0; i -= 1) {
+      positions[i].x = positions[i - 1].x;
+      positions[i].y = positions[i - 1].y;
+    }
+    positions[0].x = mouseX;
+    positions[0].y = mouseY;
+
+    trails.forEach((trail, i) => {
+      if (!trail) return;
+      trail.style.left = `${positions[i].x - 2}px`;
+      trail.style.top = `${positions[i].y - 2}px`;
+      trail.style.opacity = `${(1 - i / trails.length) * 0.35}`;
+      trail.style.transform = `scale(${1 - (i / trails.length) * 0.5})`;
+    });
+  });
+
+  // DOM event listeners + trail positions initialization
   useEffect(() => {
     const dot = dotRef.current;
     const ring = ringRef.current;
     const trails = trailRefs.current;
-
     if (!dot || !ring || trails.length === 0) return;
 
-    let mouseX = 0;
-    let mouseY = 0;
-    let ringX = 0;
-    let ringY = 0;
-    const trailPositions = trails.map(() => ({ x: 0, y: 0 }));
-    let frameId = 0;
+    trailPositionsRef.current = trails.map(() => ({ x: 0, y: 0 }));
 
     const handleMouseMove = (event: MouseEvent) => {
-      mouseX = event.clientX;
-      mouseY = event.clientY;
-      dot.style.left = `${mouseX - 4}px`;
-      dot.style.top = `${mouseY - 4}px`;
+      mousePosRef.current = { x: event.clientX, y: event.clientY };
+      dot.style.left = `${event.clientX - 4}px`;
+      dot.style.top = `${event.clientY - 4}px`;
 
       const now = performance.now();
       const last = lastPointerPosRef.current;
@@ -81,33 +111,6 @@ export function useCursorSystem(
       }
     };
 
-    const animateCursor = () => {
-      ringX += (mouseX - ringX) * 0.12;
-      ringY += (mouseY - ringY) * 0.12;
-      ring.style.left = `${ringX - 18}px`;
-      ring.style.top = `${ringY - 18}px`;
-      ring.dataset.engineHover = String(telemetryRef.current.isHoveringEngine);
-      ring.dataset.throttleActive = String(telemetryRef.current.isThrottleActive);
-      ring.style.setProperty("--throttle-level", telemetryRef.current.throttle.toFixed(3));
-
-      for (let i = trails.length - 1; i > 0; i -= 1) {
-        trailPositions[i].x = trailPositions[i - 1].x;
-        trailPositions[i].y = trailPositions[i - 1].y;
-      }
-      trailPositions[0].x = mouseX;
-      trailPositions[0].y = mouseY;
-
-      trails.forEach((trail, i) => {
-        if (!trail) return;
-        trail.style.left = `${trailPositions[i].x - 2}px`;
-        trail.style.top = `${trailPositions[i].y - 2}px`;
-        trail.style.opacity = `${(1 - i / trails.length) * 0.35}`;
-        trail.style.transform = `scale(${1 - (i / trails.length) * 0.5})`;
-      });
-
-      frameId = window.requestAnimationFrame(animateCursor);
-    };
-
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("pointermove", handleMouseMove as EventListener);
     document.addEventListener("mouseover", handleMouseOver);
@@ -115,10 +118,8 @@ export function useCursorSystem(
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("pointerup", handlePointerUp);
     document.addEventListener("pointercancel", handlePointerUp);
-    frameId = window.requestAnimationFrame(animateCursor);
 
     return () => {
-      window.cancelAnimationFrame(frameId);
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("pointermove", handleMouseMove as EventListener);
       document.removeEventListener("mouseover", handleMouseOver);
