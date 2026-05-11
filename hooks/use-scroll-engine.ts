@@ -36,14 +36,13 @@ export function useScrollEngine(
     [rpmEngineRef, previousGearRef],
   );
 
-  // IntersectionObserver for reveals, section visibility, and gauge animations
+  // IntersectionObserver for reveals and section visibility
   useEffect(() => {
     const revealElements = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
     const timelineEntries = Array.from(
       document.querySelectorAll<HTMLElement>(".timeline-entry"),
     );
     const sections = Array.from(document.querySelectorAll<HTMLElement>(".section"));
-    const gauges = Array.from(document.querySelectorAll<HTMLElement>(".skill-gauge-fill"));
 
     const revealObserver = new IntersectionObserver(
       (entries) => {
@@ -63,26 +62,12 @@ export function useScrollEngine(
       { threshold: 0.25, rootMargin: "0px 0px -15% 0px" },
     );
 
-    const gaugeObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const gauge = entry.target as HTMLElement;
-            gauge.style.width = `${gauge.dataset.width}%`;
-          }
-        });
-      },
-      { threshold: 0.25, rootMargin: "0px 0px -10% 0px" },
-    );
-
     [...revealElements, ...timelineEntries].forEach((el) => revealObserver.observe(el));
     sections.forEach((s) => sectionObserver.observe(s));
-    gauges.forEach((g) => gaugeObserver.observe(g));
 
     return () => {
       revealObserver.disconnect();
       sectionObserver.disconnect();
-      gaugeObserver.disconnect();
     };
   }, []);
 

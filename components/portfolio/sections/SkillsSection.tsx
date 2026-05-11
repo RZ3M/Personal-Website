@@ -18,18 +18,13 @@ export const SkillsSection = React.memo(function SkillsSection() {
               <span className="indicator" />
               {panel.title}
             </div>
-            {panel.skills.map((skill) => (
-              <div className="skill-gauge" key={skill.label}>
-                <span className="skill-gauge-label">{skill.label}</span>
-                <div className="skill-gauge-bar">
-                  <div
-                    className={`skill-gauge-fill ${panel.color}`}
-                    data-width={skill.value}
-                  />
-                </div>
-                <span className="skill-gauge-value">{skill.value}%</span>
-              </div>
-            ))}
+            <div className="skill-tags">
+              {panel.skills.map((skill) => (
+                <span className={`skill-tag ${panel.color}`} key={skill}>
+                  {skill}
+                </span>
+              ))}
+            </div>
           </div>
         ))}
       </div>

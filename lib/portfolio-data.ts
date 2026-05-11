@@ -25,7 +25,7 @@ export const sectionNav: readonly SectionNavItem[] = [
 export const aboutStats = [
   { number: "4", label: "Companies" },
   { number: "3.86", label: "GPA" },
-  { number: "2", label: "Degrees" },
+  { number: "1", label: "Degree" },
   { number: "∞", label: "Curiosity" },
 ] as const;
 
@@ -37,42 +37,45 @@ export const experiences = [
     location: "North York, ON",
     bullets: [
       [
-        { type: "text", content: "Designed a " },
+        { type: "text", content: "Cut file load latency from " },
+        { type: "strong", content: "1 min" },
+        { type: "text", content: " to " },
+        { type: "strong", content: "under 50 ms" },
+        { type: "text", content: " by migrating file management to " },
+        { type: "tag", content: "Azure Blob Storage" },
+        { type: "text", content: " behind an in-memory blob/file-server resolver cache" },
+      ],
+      [
+        { type: "text", content: "Built a " },
         { type: "tag", content: "C#" },
-        {
-          type: "text",
-          content:
-            " Database Deletion Queue worker automating cleanup of 5,000+ orphaned resources, restoring ",
-        },
-        { type: "strong", content: "60+ TB" },
-        { type: "text", content: " of storage" },
-      ],
-      [
-        { type: "text", content: "Built a hybrid file-management service in " },
+        { type: "text", content: "/" },
         { type: "tag", content: ".NET" },
-        {
-          type: "text",
-          content: " integrating on-prem servers with ",
-        },
-        { type: "tag", content: "Azure Blob" },
-        {
-          type: "text",
-          content: " via Managed Identity — eliminating credential incidents",
-        },
+        { type: "text", content: " deletion-queue workflow on " },
+        { type: "tag", content: "SQL Server" },
+        { type: "text", content: " that reclaimed " },
+        { type: "strong", content: "60+ TB" },
+        { type: "text", content: " by retiring " },
+        { type: "strong", content: "5,000+" },
+        { type: "text", content: " orphaned databases — lifecycle (notify, approve, backup, drop, unregister) with a " },
+        { type: "tag", content: "React" },
+        { type: "text", content: " approval UI and audit guardrails" },
       ],
       [
-        { type: "text", content: "Cut page load & build times " },
-        { type: "strong", content: "2×" },
-        { type: "text", content: " with a new " },
-        { type: "tag", content: "React" },
-        { type: "text", content: " + " },
-        { type: "tag", content: "Next.js" },
-        {
-          type: "text",
-          content: ", automated tests, and ",
-        },
-        { type: "tag", content: "GitHub Actions" },
-        { type: "text", content: " CI/CD" },
+        { type: "text", content: "Migrated a core platform integration off a deprecated internal tool — refactored " },
+        { type: "strong", content: "20+" },
+        { type: "text", content: " call sites behind typed DTOs and mockable service abstractions" },
+      ],
+      [
+        { type: "text", content: "Cut admin dashboard load times from 5–10 min to under 5 sec (" },
+        { type: "strong", content: "99%+" },
+        { type: "text", content: " faster) by collapsing N+1 per-service health polls into a single control-database query" },
+      ],
+      [
+        { type: "text", content: "Cut CI pipeline runtime from 30 to 18 min (" },
+        { type: "strong", content: "40%" },
+        { type: "text", content: " faster) by mocking live " },
+        { type: "tag", content: "Azure" },
+        { type: "text", content: " calls, deduping build steps, and parallelizing tests" },
       ],
     ] satisfies ExperiencePart[][],
   },
@@ -83,29 +86,33 @@ export const experiences = [
     location: "Toronto, ON",
     bullets: [
       [
-        { type: "text", content: "Boosted reporting efficiency " },
-        { type: "strong", content: "80%" },
-        { type: "text", content: " with real-time " },
+        { type: "text", content: "Shipped a " },
         { type: "tag", content: "React" },
-        { type: "text", content: " dashboards and " },
+        { type: "text", content: " + " },
+        { type: "tag", content: "Redux" },
+        { type: "text", content: " dashboard indexing " },
+        { type: "strong", content: "1,000+" },
+        { type: "text", content: " approved technologies for the Enterprise Architecture team, backed by " },
         { type: "tag", content: "Spring Boot" },
-        { type: "text", content: " REST APIs" },
+        { type: "text", content: " APIs" },
       ],
       [
-        { type: "text", content: "Optimized " },
+        { type: "text", content: "Tuned " },
         { type: "tag", content: "MariaDB" },
-        { type: "text", content: " queries and " },
+        { type: "text", content: " / " },
         { type: "tag", content: "Elasticsearch" },
-        { type: "text", content: " indices — report gen dropped from 10s to " },
+        { type: "text", content: " indices — cut service-metadata reports from 10s to " },
         { type: "strong", content: "3s" },
+        { type: "text", content: " and reduced manual reporting effort by " },
+        { type: "strong", content: "80%" },
       ],
       [
-        {
-          type: "text",
-          content:
-            "Upgraded backend from Spring 5 → 6, refactored legacy modules, pushed test coverage to ",
-        },
-        { type: "strong", content: "95%" },
+        { type: "text", content: "Upgraded " },
+        { type: "strong", content: "10+" },
+        { type: "text", content: " backend services to current Spring LTS, raising " },
+        { type: "tag", content: "JUnit" },
+        { type: "text", content: " coverage to " },
+        { type: "strong", content: "80%" },
       ],
     ] satisfies ExperiencePart[][],
   },
@@ -116,21 +123,24 @@ export const experiences = [
     location: "Ottawa, ON",
     bullets: [
       [
-        { type: "text", content: "Resolved " },
+        { type: "text", content: "Debugged " },
         { type: "strong", content: "100+" },
-        { type: "text", content: " complex client issues maintaining " },
+        { type: "text", content: " production BI deployment issues across " },
+        { type: "tag", content: "Cognos" },
+        { type: "text", content: " by tracing logs, profiling report queries, and inspecting config/auth — maintaining " },
         { type: "strong", content: "98%+" },
-        { type: "text", content: " system uptime" },
+        { type: "text", content: " uptime across enterprise client environments" },
       ],
       [
-        { type: "text", content: "Automated deployment workflows with " },
+        { type: "text", content: "Built internal " },
         { type: "tag", content: "Bash" },
-        { type: "text", content: " & " },
-        { type: "tag", content: "Python" },
-        {
-          type: "text",
-          content: ", cutting onboarding from days to hours",
-        },
+        { type: "text", content: " and " },
+        { type: "tag", content: "PowerShell" },
+        { type: "text", content: " diagnostic scripts that automated recurring health checks — cutting average triage time from " },
+        { type: "strong", content: "45 min" },
+        { type: "text", content: " to " },
+        { type: "strong", content: "15 min" },
+        { type: "text", content: " per case" },
       ],
     ] satisfies ExperiencePart[][],
   },
@@ -167,27 +177,27 @@ export const experiences = [
 
 export const projects = [
   {
-    badge: "🏆 HACKHIVE 2ND PLACE",
+    badge: "LOCAL-FIRST RAG",
+    name: "TERRARIA RAG",
+    brief:
+      "Spoiler-free Terraria assistant powered by local RAG over 3,671 wiki pages",
+    backTitle: "TERRARIA RAG SYSTEM",
+    description:
+      "Local-first Python RAG that ingests 3,671 Terraria wiki pages into 22,005 Qdrant chunks for spoiler-free hints. Hit 81.8% recall@5, 95.5% content-recall@5, and 0.629 MRR via metadata filters, section reranking, and cross-encoders.",
+    techStack: ["Python", "Qdrant", "Embeddings", "Cross-Encoders", "RAG"],
+    href: "https://github.com/RZ3M/terraria-rag",
+    delayClass: "reveal-delay-2",
+  },
+  {
+    badge: "🏆 HACKHIVE 2025 WINNER",
     name: "FLASH.AI",
     brief:
       "AI-powered study assistant that converts raw notes into interactive quizzes",
     backTitle: "FLASH.AI",
     description:
-      "Built an award-winning study assistant using Google Gemini that converts raw notes into quizzes with secure JWT authentication and scalable real-time generation. Handled 500+ concurrent requests during launch.",
-    techStack: ["Google Gemini", "React", "Node.js", "Express", "MongoDB", "JWT"],
+      "Won HackHive 2025 by building a React/Vite + Express/MongoDB AI study assistant with a Google Gemini pipeline that converts PDF/TXT/DOCX into tagged, difficulty-rated quizzes. Returned to HackHive 2026 as a mentor representing Dayforce, hosting workshops for student builders.",
+    techStack: ["Google Gemini", "React", "Vite", "Express", "MongoDB"],
     href: "https://github.com/Macpickle/Flash.AI",
-    delayClass: "reveal-delay-2",
-  },
-  {
-    badge: "CLOUD NATIVE",
-    name: "FRAGMENTS",
-    brief:
-      "Cloud-native file hosting platform with automated CI/CD and autoscaling",
-    backTitle: "FRAGMENTS FILE HOSTING",
-    description:
-      "Cloud-native file hosting platform enabling secure upload, conversion, and storage for multiple file types. Fully automated CI/CD using GitHub Actions to build and deploy containers to AWS ECR/ECS with zero-touch deployments.",
-    techStack: ["Node.js", "AWS S3", "Cognito", "Docker", "ECR/ECS", "GitHub Actions"],
-    href: "https://github.com/RZ3M/fragments",
     delayClass: "reveal-delay-3",
   },
   {
@@ -204,6 +214,18 @@ export const projects = [
     delayClass: "reveal-delay-2",
   },
   {
+    badge: "CLOUD NATIVE",
+    name: "FRAGMENTS",
+    brief:
+      "Cloud-native file hosting platform with automated CI/CD and autoscaling",
+    backTitle: "FRAGMENTS FILE HOSTING",
+    description:
+      "Cloud-native file hosting platform enabling secure upload, conversion, and storage for multiple file types. Fully automated CI/CD using GitHub Actions to build and deploy containers to AWS ECR/ECS with zero-touch deployments.",
+    techStack: ["Node.js", "AWS S3", "Cognito", "Docker", "ECR/ECS", "GitHub Actions"],
+    href: "https://github.com/RZ3M/fragments",
+    delayClass: "reveal-delay-3",
+  },
+  {
     badge: "FREE CAD / 3D PRINT",
     name: "OIL CHANGE FUNNELS",
     brief:
@@ -214,7 +236,7 @@ export const projects = [
     techStack: ["CAD", "3D Printing", "Automotive", "DFM", "MakerWorld"],
     href: "https://makerworld.com/en/@grapes/upload",
     linkLabel: "VIEW ON MAKERWORLD",
-    delayClass: "reveal-delay-3",
+    delayClass: "reveal-delay-2",
   },
 ] as const;
 
@@ -222,7 +244,7 @@ type SkillPanel = {
   title: string;
   delayClass: string;
   color: SkillColor;
-  skills: readonly { label: string; value: number }[];
+  skills: readonly string[];
 };
 
 export const skillPanels = [
@@ -230,56 +252,57 @@ export const skillPanels = [
     title: "LANGUAGES",
     delayClass: "reveal-delay-2",
     color: "red",
-    skills: [
-      { label: "C#", value: 92 },
-      { label: "Java", value: 90 },
-      { label: "Python", value: 88 },
-      { label: "TypeScript", value: 90 },
-      { label: "C/C++", value: 78 },
-      { label: "SQL", value: 85 },
-      { label: "Bash", value: 80 },
-    ],
+    skills: ["Python", "SQL", "C#", "TypeScript", "JavaScript", "Java", "Bash"],
   },
   {
     title: "FRAMEWORKS",
     delayClass: "reveal-delay-3",
     color: "blue",
     skills: [
-      { label: "React", value: 92 },
-      { label: "Next.js", value: 88 },
-      { label: "Spring Boot", value: 90 },
-      { label: ".NET", value: 90 },
-      { label: "Node.js", value: 88 },
-      { label: "Express", value: 85 },
-      { label: "Angular", value: 72 },
+      ".NET",
+      "ASP.NET Core",
+      "React",
+      "Next.js",
+      "Node.js",
+      "Express",
+      "Spring Boot",
+      "REST APIs",
     ],
   },
   {
-    title: "DEVOPS & CLOUD",
+    title: "AI & DATA",
     delayClass: "reveal-delay-2",
-    color: "orange",
-    skills: [
-      { label: "Docker", value: 90 },
-      { label: "Azure", value: 88 },
-      { label: "AWS", value: 85 },
-      { label: "CI/CD", value: 92 },
-      { label: "Jenkins", value: 80 },
-      { label: "Git", value: 95 },
-      { label: "Linux", value: 85 },
-    ],
-  },
-  {
-    title: "CONCEPTS",
-    delayClass: "reveal-delay-3",
     color: "green",
     skills: [
-      { label: "Full Stack", value: 94 },
-      { label: "Microservices", value: 88 },
-      { label: "REST APIs", value: 95 },
-      { label: "Automation", value: 92 },
-      { label: "Cloud Arch.", value: 88 },
-      { label: "DevOps", value: 90 },
-      { label: "Testing", value: 88 },
+      "RAG",
+      "Vector Search",
+      "Embeddings",
+      "Cross-Encoder Reranking",
+      "Function Calling",
+      "Structured Output",
+      "Pandas/NumPy",
+      "SQL Server",
+      "MariaDB",
+      "MongoDB",
+      "Elasticsearch",
+      "Supabase",
+      "Qdrant",
+    ],
+  },
+  {
+    title: "CLOUD & TOOLS",
+    delayClass: "reveal-delay-3",
+    color: "orange",
+    skills: [
+      "Azure",
+      "AWS",
+      "Docker",
+      "GitHub Actions",
+      "Jenkins",
+      "Git",
+      "Linux",
+      "CI/CD",
+      "SonarQube",
     ],
   },
 ] satisfies SkillPanel[];

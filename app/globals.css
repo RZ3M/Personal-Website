@@ -774,9 +774,8 @@ button:focus-visible,
 .stat-card:hover::before { opacity: 1; }
 
 .stat-card:hover {
-  border-color: rgba(230,57,70,0.2);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border-color: rgba(230,57,70,0.35);
+  background: rgba(230,57,70,0.03);
 }
 
 .stat-number {
@@ -1182,6 +1181,34 @@ button:focus-visible,
   min-width: 32px;
 }
 
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  background: rgba(255, 255, 255, 0.02);
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.skill-tag:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.skill-tag.red    { color: var(--red); }
+.skill-tag.blue   { color: var(--blue); }
+.skill-tag.orange { color: var(--orange); }
+.skill-tag.green  { color: var(--green); }
+
 /* ═══════════════════════════════════════════════════════
    CONTACT SECTION
    ═══════════════════════════════════════════════════════ */
@@ -1217,8 +1244,7 @@ button:focus-visible,
 .contact-link:hover {
   border-color: var(--red);
   color: var(--text-primary);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(230,57,70,0.15);
+  background: rgba(230,57,70,0.04);
 }
 
 .contact-link svg {
@@ -1483,8 +1509,8 @@ html[data-theme="light"] .h-gate-plate {
 
 /* Stat card hover border */
 html[data-theme="light"] .stat-card:hover {
-  border-color: rgba(200,36,59,0.25);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  border-color: rgba(200,36,59,0.4);
+  background: rgba(200,36,59,0.04);
 }
 
 /* Lap flag — keep contrast in light mode */
@@ -1494,7 +1520,7 @@ html[data-theme="light"] .timeline-lap .lap-flag {
 
 /* Contact link hover */
 html[data-theme="light"] .contact-link:hover {
-  box-shadow: 0 8px 24px rgba(200,36,59,0.12);
+  background: rgba(200,36,59,0.05);
 }
 
 /* Cursor ring — adjust overlay colors for light bg */
