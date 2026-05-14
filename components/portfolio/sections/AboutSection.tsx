@@ -21,17 +21,6 @@ export const AboutSection = React.memo(function AboutSection() {
           </p>
           <br />
           <p>
-            With a foundation in{" "}
-            <span className="blue">Computer Science</span> at{" "}
-            <span className="highlight">Ontario Tech University</span> (3.86
-            GPA) and earlier coursework in{" "}
-            <span className="blue">Electrical Engineering</span> at the{" "}
-            <span className="highlight">University of Waterloo</span>, I have
-            equal respect for systems{" "}
-            <span className="highlight">digital and physical</span>.
-          </p>
-          <br />
-          <p>
             My world sits at the intersection of{" "}
             <span className="highlight">engineering and art</span>, and to me
             they&apos;re one and the same. A perfectly executing system is as
