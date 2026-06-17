@@ -1126,6 +1126,18 @@ button:focus-visible,
   border-radius: 50%;
 }
 
+.skill-panel-level {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.skill-panel-level.red    { color: var(--red); }
+.skill-panel-level.blue   { color: var(--blue); }
+.skill-panel-level.orange { color: var(--orange); }
+.skill-panel-level.green  { color: var(--green); }
+
 .skill-gauge {
   margin-bottom: 14px;
   display: flex;
@@ -1156,6 +1168,11 @@ button:focus-visible,
   width: 0;
   transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+}
+
+/* Animate the fill only once the panel scrolls into view */
+.skill-panel.visible .skill-gauge-fill {
+  width: var(--level, 0);
 }
 
 .skill-gauge-fill::after {
@@ -1559,4 +1576,236 @@ html[data-theme="light"] {
     border-color 0.35s ease,
     color 0.35s ease,
     box-shadow 0.35s ease;
+}
+
+/* ═══════════════════════════════════════════════════════
+   LED TACH STRIP (telemetry bar)
+   ═══════════════════════════════════════════════════════ */
+.telemetry-center {
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.tach-strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 8px;
+}
+
+.tach-led {
+  width: 5px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--throttle-bar-inactive);
+  box-shadow: inset 0 0 0 1px var(--throttle-bar-inactive-inset);
+  transition: background 0.08s linear, box-shadow 0.08s linear;
+}
+
+.tach-led.lit[data-zone="green"] {
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(6,214,160,0.55);
+}
+.tach-led.lit[data-zone="yellow"] {
+  background: var(--orange);
+  box-shadow: 0 0 6px rgba(255,107,53,0.55);
+}
+.tach-led.lit[data-zone="red"] {
+  background: var(--red);
+  box-shadow: 0 0 7px rgba(230,57,70,0.65);
+}
+
+/* Whole strip pulses when bouncing off the limiter */
+.tach-strip[data-redline="true"] .tach-led.lit[data-zone="red"] {
+  animation: tachRedlineFlash 0.11s steps(2, end) infinite;
+}
+
+@keyframes tachRedlineFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (max-width: 600px) {
+  .tach-strip { height: 6px; gap: 1.5px; }
+  .tach-led { width: 4px; height: 6px; }
+}
+
+@media (max-width: 430px) {
+  .tach-strip { display: none; }
+  .telemetry-center { gap: 0; }
+}
+
+html[data-theme="light"] .tach-led.lit[data-zone="green"] {
+  box-shadow: 0 0 5px rgba(0,175,132,0.4);
+}
+html[data-theme="light"] .tach-led.lit[data-zone="yellow"] {
+  box-shadow: 0 0 5px rgba(224,80,16,0.4);
+}
+html[data-theme="light"] .tach-led.lit[data-zone="red"] {
+  box-shadow: 0 0 6px rgba(200,36,59,0.5);
+}
+
+/* ═══════════════════════════════════════════════════════
+   HERO COCKPIT FRAME
+   ═══════════════════════════════════════════════════════ */
+.cockpit-frame {
+  position: absolute;
+  inset: -6%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.cockpit-corner {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid rgba(0,180,216,0.45);
+  opacity: 0.85;
+}
+.cockpit-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+.cockpit-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+.cockpit-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+.cockpit-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+.cockpit-hud {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.6px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.cockpit-hud-tl { top: 4px; left: 32px; }
+.cockpit-hud-tr { top: 4px; right: 32px; }
+.cockpit-hud-bl { bottom: 4px; left: 32px; }
+.cockpit-hud-br { bottom: 4px; right: 32px; color: var(--blue); }
+
+.cockpit-hud-br[data-throttle-active="true"] {
+  color: var(--green);
+  text-shadow: 0 0 10px rgba(6,214,160,0.6);
+}
+
+@media (max-width: 600px) {
+  .cockpit-hud { font-size: 7.5px; letter-spacing: 1px; }
+  .cockpit-hud-tl, .cockpit-hud-bl { left: 26px; }
+  .cockpit-hud-tr, .cockpit-hud-br { right: 26px; }
+  .cockpit-corner { width: 20px; height: 20px; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   SECTION HEADER PIT-BOARD FRAMING
+   ═══════════════════════════════════════════════════════ */
+/* Auto-number sections as sectors (S1, S2, ...) via a body counter */
+body { counter-reset: sector; }
+.section:not(.hero) { counter-increment: sector; }
+
+.section-header {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.section-header::before {
+  content: "S" counter(sector);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--red);
+  padding: 2px 8px;
+  border: 1px solid rgba(230,57,70,0.35);
+  border-radius: 4px;
+  align-self: center;
+  opacity: 0.85;
+}
+
+html[data-theme="light"] .section-header::before {
+  border-color: rgba(200,36,59,0.35);
+}
+
+/* ═══════════════════════════════════════════════════════
+   EXPERIENCE SECTOR SPLITS
+   ═══════════════════════════════════════════════════════ */
+.sector-list {
+  list-style: none;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sector-row {
+  position: relative;
+  padding: 10px 14px 10px 44px;
+  background: rgba(255,255,255,0.015);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--red);
+  border-radius: 4px;
+  transition: border-color 0.3s, background 0.3s, transform 0.3s;
+}
+
+.sector-row:hover {
+  border-left-color: var(--blue);
+  background: rgba(0,180,216,0.04);
+  transform: translateX(4px);
+}
+
+.sector-index {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--red);
+  opacity: 0.8;
+}
+
+.sector-text {
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.sector-metric {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+}
+
+.sector-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  margin: 0 1px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--blue);
+  background: rgba(0,180,216,0.08);
+  border: 1px solid rgba(0,180,216,0.18);
+  border-radius: 3px;
+  letter-spacing: 0.4px;
+  vertical-align: 1px;
+}
+
+html[data-theme="light"] .sector-row {
+  background: rgba(0,0,0,0.015);
+}
+html[data-theme="light"] .sector-row:hover {
+  background: rgba(0,144,184,0.05);
+}
+html[data-theme="light"] .sector-tag {
+  background: rgba(0,144,184,0.08);
+  border-color: rgba(0,144,184,0.2);
+}
+
+@media (max-width: 600px) {
+  .sector-text { font-size: 13.5px; line-height: 1.65; }
+  .sector-row { padding-left: 40px; }
 }

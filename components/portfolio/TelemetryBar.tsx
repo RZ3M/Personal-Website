@@ -23,6 +23,9 @@ export const TelemetryBar = React.memo(function TelemetryBar({
     0,
     Math.min(throttleSegments, Math.round(displayThrottle * throttleSegments)),
   );
+  // LED tach strip — 20 segments sweeping green → yellow → red near redline.
+  const tachSegments = 20;
+  const activeTachSegments = Math.round(normalizedRpm * tachSegments);
 
   return (
     <div className="telemetry-bar">
@@ -32,11 +35,24 @@ export const TelemetryBar = React.memo(function TelemetryBar({
           <span className="status-text">SYSTEMS ONLINE</span>
         </span>
       </div>
-      <div
-        className={`rpm-readout${isAtLimiter ? " redline" : ""}`}
-        id="rpmReadout"
-      >
-        {String(Math.floor(displayRpm)).padStart(4, "0")} RPM
+      <div className="telemetry-center">
+        <div
+          className={`rpm-readout${isAtLimiter ? " redline" : ""}`}
+          id="rpmReadout"
+        >
+          {String(Math.floor(displayRpm)).padStart(4, "0")} RPM
+        </div>
+        <div className="tach-strip" data-redline={isAtLimiter} aria-hidden="true">
+          {Array.from({ length: tachSegments }, (_, index) => (
+            <span
+              key={index}
+              className={`tach-led${index < activeTachSegments ? " lit" : ""}`}
+              data-zone={
+                index < 12 ? "green" : index < 17 ? "yellow" : "red"
+              }
+            />
+          ))}
+        </div>
       </div>
       <div className="right-data">
         <div className="telemetry-chip throttle-chip" id="teleThrottle">

@@ -17,7 +17,22 @@ export const SkillsSection = React.memo(function SkillsSection() {
             <div className="skill-panel-title">
               <span className="indicator" />
               {panel.title}
+              <span className={`skill-panel-level ${panel.color}`}>
+                {String(panel.level).padStart(3, "0")}%
+              </span>
             </div>
+
+            <div className="skill-gauge">
+              <span className="skill-gauge-label">LOAD</span>
+              <div className="skill-gauge-bar">
+                <div
+                  className={`skill-gauge-fill ${panel.color}`}
+                  style={{ "--level": `${panel.level}%` } as React.CSSProperties}
+                />
+              </div>
+              <span className="skill-gauge-value">{panel.level}</span>
+            </div>
+
             <div className="skill-tags">
               {panel.skills.map((skill) => (
                 <span className={`skill-tag ${panel.color}`} key={skill}>

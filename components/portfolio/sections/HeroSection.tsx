@@ -41,13 +41,26 @@ export const HeroSection = React.memo(function HeroSection({
         data-throttle-active={isThrottleActive}
         {...heroEngineBindings}
       >
+        <div className="cockpit-frame" aria-hidden="true">
+          <span className="cockpit-corner cockpit-tl" />
+          <span className="cockpit-corner cockpit-tr" />
+          <span className="cockpit-corner cockpit-bl" />
+          <span className="cockpit-corner cockpit-br" />
+          <span className="cockpit-hud cockpit-hud-tl">13B-MSP · ROTARY</span>
+          <span className="cockpit-hud cockpit-hud-tr">2-ROTOR · WANKEL</span>
+          <span className="cockpit-hud cockpit-hud-bl">REDLINE 9500</span>
+          <span className="cockpit-hud cockpit-hud-br" data-throttle-active={isThrottleActive}>
+            {isThrottleActive ? "WOT" : "IDLE"}
+          </span>
+        </div>
+
         <div className="engine-rumble-shell" style={engineRumbleStyle}>
           <canvas id="rotaryCanvas" width="1040" height="1040" ref={rotaryCanvasRef} />
           <span className="engine-interaction-label" data-visible={showThrottleHint}>
             HOLD TO REV
           </span>
         </div>
-        <canvas className="rotary-labels-canvas" ref={rotaryLabelsCanvasRef} width="1040" height="1040" />
+        <canvas className="rotary-labels-canvas" ref={rotaryLabelsCanvasRef} width="1040" height={1040} />
       </div>
 
       <h1 className="hero-title">JACK MA</h1>

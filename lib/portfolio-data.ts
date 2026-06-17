@@ -244,6 +244,9 @@ type SkillPanel = {
   title: string;
   delayClass: string;
   color: SkillColor;
+  // Proficiency gauge value (0–100). Thematic "channel load" — not a precise
+  // measurement, just an honest-ish self-assessment for the dashboard readout.
+  level: number;
   skills: readonly string[];
 };
 
@@ -252,12 +255,14 @@ export const skillPanels = [
     title: "LANGUAGES",
     delayClass: "reveal-delay-2",
     color: "red",
+    level: 92,
     skills: ["Python", "SQL", "C#", "TypeScript", "JavaScript", "Java", "Bash"],
   },
   {
     title: "FRAMEWORKS",
     delayClass: "reveal-delay-3",
     color: "blue",
+    level: 88,
     skills: [
       ".NET",
       "ASP.NET Core",
@@ -273,6 +278,7 @@ export const skillPanels = [
     title: "AI & DATA",
     delayClass: "reveal-delay-2",
     color: "green",
+    level: 85,
     skills: [
       "RAG",
       "Vector Search",
@@ -293,6 +299,7 @@ export const skillPanels = [
     title: "CLOUD & TOOLS",
     delayClass: "reveal-delay-3",
     color: "orange",
+    level: 90,
     skills: [
       "Azure",
       "AWS",
